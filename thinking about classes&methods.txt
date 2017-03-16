@@ -1,0 +1,14 @@
+piece classes
+	attributes
+		name
+		number
+		space
+		taken
+	methods
+		check legality
+		check path
+		taken
+			mark as taken=true
+			move off of board
+space class
+	methods
