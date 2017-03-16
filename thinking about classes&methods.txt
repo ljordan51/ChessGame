@@ -10,5 +10,18 @@ piece classes
 		taken
 			mark as taken=true
 			move off of board
+
 space class
+	attributes
+		xpos
+		ypos
+		occupied
+		piece
 	methods
+		add piece
+		remove piece
+
+input class
+
+
+main func
