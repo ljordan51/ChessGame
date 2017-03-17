@@ -1,4 +1,7 @@
+import pygame
+
 BLOCK = 100
+WINDOW = BLOCK*8
 A = 1
 B = 2
 C = 3
@@ -246,7 +249,7 @@ class game(object):
         return False
 
     def checkmate(self, turn):
-        pass
+        return False
 
     def check_occupation(self, move, turn):
         """
@@ -487,10 +490,14 @@ class game(object):
         return False
 
     def check(self, piece_index, move, turn):
-        pass
+        return False
 
     def move_piece(self, piece_index, move, turn):
-        pass
+        pos = self.get_pos_from_move(move)
+        if turn % 2 == 1:
+            self.w_pcs[piece_index] = self.w_pcs[piece_index].move(pos[0], pos[1])
+        else:
+            self.b_pcs[piece_index] = self.b_pcs[piece_index].move(pos[0], pos[1])
 
     def get_pos_from_move(self, move):
         """
@@ -506,13 +513,22 @@ class game(object):
         y = int(move[2])
         return [x, y]
 
+    def draw(self, screen):
+        pass
+
 
 def main():
+    pygame.init()
+    screen = pygame.display.set_mode((WINDOW, WINDOW))  # initialize and display window
+
     Game = game()
     turn = 1
 
     running = True
     while running:
+        Game.draw(screen)
+        pygame.dipslay.update()
+
         checkmate = Game.checkmate(turn)
         if checkmate:
             running = False
