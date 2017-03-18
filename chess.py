@@ -16,7 +16,7 @@ COLS = 'ABCDEFGH'
 pygame.init()
 screen = pygame.display.set_mode((WINDOW, WINDOW))  # initialize and display window
 
-BOARD = pygame.image.load('chess_board.png').convert()
+BOARD = pygame.image.load('chess_board.png').convert_alpha()
 w_imgs = []
 b_imgs = []
 im_files = ['wk', 'wq', 'wb', 'wh', 'wr', 'wp', 'bk', 'bq', 'bb', 'bh', 'br', 'bp']
@@ -28,7 +28,7 @@ for filename in im_files:
     else:
         num = 1
     for i in range(num):
-        img = pygame.image.load(filename + '.png').convert()
+        img = pygame.image.load(filename + '.png').convert_alpha()
         if filename[0] == 'w':
             w_imgs.append(img)
         else:
@@ -223,14 +223,19 @@ class game(object):
         wrong = True
         while wrong:
             move = input(q)
-            wrong = not self.check_input(move)
+            if move.lower() == 'quit':
+                return move.lower()
+            if move.lower() == 'reset':
+                return move.lower()
             if move.lower() == 'help':
                 self.print_opts()
+                continue
+            wrong = not self.check_input(move)
         return move
 
     def print_opts(self):
         print('Input examples:' + '\n' + 'PE4 = pawn to E4' + '\n' + 'RE4 = rook to E4' + '\n' + 'NE4 = knight to E4'
-              + '\n' + 'BE4 = bishop to E4' + '\n' + 'Q4 = queen to E4' + '\n' + 'KE4 = king to E4' + '\n' +
+              + '\n' + 'BE4 = bishop to E4' + '\n' + 'QE4 = queen to E4' + '\n' + 'KE4 = king to E4' + '\n' +
               '0-0-0 = queenside castle' + '\n' + '0-0 = kingside castle')
 
     def check_input(self, move):
@@ -267,6 +272,7 @@ class game(object):
             three = move[2]
             if one in ones and two in COLS and three in ROWS:
                 return True
+        print('Invalid input. Try again.')
         return False
 
     def checkmate(self, turn):
@@ -311,24 +317,24 @@ class game(object):
         l = move[0]
         if l == 'K':
             piece = pieces[0]
-            legal = piece.legal(pos[0], pos[1], taking)
+            legal = piece.legal(pos[0], pos[1])
             result = [legal, 0]
         elif l == 'Q':
             piece = pieces[1]
-            legal = piece.legal(pos[0], pos[1], taking)
+            legal = piece.legal(pos[0], pos[1])
             result = [legal, 1]
         elif l == 'B':
             piece1 = pieces[2]
             piece2 = pieces[3]
-            if piece1.legal(pos[0], pos[1], taking):
+            if piece1.legal(pos[0], pos[1]):
                 legals.append(piece1)
                 indices.append(2)
-            if piece2.legal(pos[0], pos[1], taking):
+            if piece2.legal(pos[0], pos[1]):
                 legals.append(piece2)
                 indices.append(3)
             if len(legals) == 0:
                 result = [False]
-            if len(legals) == 1:
+            elif len(legals) == 1:
                 result = [True, indices[0]]
             else:
                 index = self.multiple_legals(legals, indices)
@@ -336,32 +342,32 @@ class game(object):
         elif l == 'N':
             piece1 = pieces[4]
             piece2 = pieces[5]
-            if piece1.legal(pos[0], pos[1], taking):
+            if piece1.legal(pos[0], pos[1]):
                 legals.append(piece1)
                 indices.append(4)
-            if piece2.legal(pos[0], pos[1], taking):
+            if piece2.legal(pos[0], pos[1]):
                 legals.append(piece2)
                 indices.append(5)
             if len(legals) == 0:
                 result = [False]
-            if len(legals) == 1:
-                result = [True, legals[0]]
+            elif len(legals) == 1:
+                result = [True, indices[0]]
             else:
                 index = self.multiple_legals(legals, indices)
                 result = [True, index]
         elif l == 'R':
             piece1 = pieces[6]
             piece2 = pieces[7]
-            if piece1.legal(pos[0], pos[1], taking):
+            if piece1.legal(pos[0], pos[1]):
                 legals.append(piece1)
                 indices.append(6)
-            if piece2.legal(pos[0], pos[1], taking):
+            if piece2.legal(pos[0], pos[1]):
                 legals.append(piece2)
                 indices.append(7)
             if len(legals) == 0:
                 result = [False]
-            if len(legals) == 1:
-                result = [True, legals[0]]
+            elif len(legals) == 1:
+                result = [True, indices[0]]
             else:
                 index = self.multiple_legals(legals, indices)
                 result = [True, index]
@@ -400,8 +406,8 @@ class game(object):
                 indices.append(15)
             if len(legals) == 0:
                 result = [False]
-            if len(legals) == 1:
-                result = [True, legals[0]]
+            elif len(legals) == 1:
+                result = [True, indices[0]]
             else:
                 index = self.multiple_legals(legals, indices)
                 result = [True, index]
@@ -430,6 +436,10 @@ class game(object):
         not_choice = True
         while not_choice:
             space = input()
+            if space.lower() == 'quit':
+                return space.lower()
+            if space.lower() == 'reset':
+                return space.lower()
             if space in spaces:
                 not_choice = False
                 index = indices[spaces.index(space)]
@@ -495,7 +505,7 @@ class game(object):
                         return False
             return True
         else:
-            if (not piece.moved) and (move[3] == 4 or move[3] == 5):
+            if (not piece.moved) and (move[2] == 4 or move[2] == 5):
                 if self.check_space(piece.x, piece.y + ydif/2, 'P', turn):
                     return False
             return True
@@ -503,7 +513,7 @@ class game(object):
     def check_space(self, x, y, piece_type, turn):
         """ Helper func for check_path to reduce copied and pasted code.
         """
-        space = self.get_space_from_pos(x, y)
+        space = self.get_space_from_pos(int(x), int(y))
         move = piece_type + space
         status = self.check_occupation(move, turn)
         if status != 'empty':
@@ -513,12 +523,21 @@ class game(object):
     def check(self, piece_index, move, turn):
         return False
 
-    def move_piece(self, piece_index, move, turn):
+    def move_piece(self, piece_index, move, turn, taking):
         pos = self.get_pos_from_move(move)
+        if taking:
+            if turn % 2 == 1:
+                for piece in self.b_pcs:
+                    if piece.x == pos[0] and piece.y == pos[1]:
+                        piece.taken()
+            else:
+                for piece in self.w_pcs:
+                    if piece.x == pos[0] and piece.y == pos[1]:
+                        piece.taken()
         if turn % 2 == 1:
-            self.w_pcs[piece_index] = self.w_pcs[piece_index].move(pos[0], pos[1])
+            self.w_pcs[piece_index].move(pos[0], pos[1])
         else:
-            self.b_pcs[piece_index] = self.b_pcs[piece_index].move(pos[0], pos[1])
+            self.b_pcs[piece_index].move(pos[0], pos[1])
 
     def get_pos_from_move(self, move):
         """
@@ -535,20 +554,27 @@ class game(object):
         return [x, y]
 
     def draw(self, screen):
-        screen.blit(BOARD, (0, 0))
         for i in range(len(self.w_pcs)):
             screen.blit(w_imgs[i], (self.w_pcs[i].x*BLOCK, (9-self.w_pcs[i].y)*BLOCK))
         for i in range(len(self.b_pcs)):
             screen.blit(b_imgs[i], (self.b_pcs[i].x*BLOCK, (9-self.b_pcs[i].y)*BLOCK))
 
+    def reset(self):
+        self.__init__()
+
 
 def main():
+    print('Welcome to CHESS! by Lucky Jordan.')
+    print('Type help for examples of commands if not already listed.')
+    print('Type quit to quit.')
+    print('Type reset to reset the board.')
     Game = game()
     turn = 1
 
     running = True
     playing = True
     while running:
+        screen.blit(BOARD, (0, 0))
         Game.draw(screen)
         pygame.display.update()
 
@@ -556,6 +582,7 @@ def main():
             if event.type == pygame.QUIT:
                 playing = False
                 running = False
+                continue
 
         checkmate = Game.checkmate(turn)
         if checkmate:
@@ -563,6 +590,14 @@ def main():
             continue
 
         move = Game.get_input(turn)
+        if move == 'quit':
+            playing = False
+            running = False
+            continue
+        if move == 'reset':
+            Game.reset()
+            turn = 1
+            continue
 
         occupied = Game.check_occupation(move, turn)
         if occupied == 'blocked':
@@ -579,6 +614,15 @@ def main():
             continue
 
         piece_index = legality_and_piece[1]
+        if piece_index == 'quit':
+            playing = False
+            running = False
+            continue
+        if piece_index == 'reset':
+            Game.reset()
+            turn = 1
+            continue
+
         clearPath = Game.check_path(piece_index, move, turn)
         if not clearPath:
             print('There is at least one piece blocking your path. Try again.')
@@ -589,7 +633,7 @@ def main():
             print('That move puts your king in check. Try again.')
             continue
 
-        Game.move_piece(piece_index, move, turn)
+        Game.move_piece(piece_index, move, turn, taking)
 
         turn += 1
 
