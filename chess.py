@@ -1,7 +1,7 @@
 import pygame
 
 BLOCK = 100
-WINDOW = BLOCK*8
+WINDOW = BLOCK*9
 A = 1
 B = 2
 C = 3
@@ -12,6 +12,27 @@ G = 7
 H = 8
 ROWS = '12345678'
 COLS = 'ABCDEFGH'
+
+pygame.init()
+screen = pygame.display.set_mode((WINDOW, WINDOW))  # initialize and display window
+
+BOARD = pygame.image.load('chess_board.png').convert()
+w_imgs = []
+b_imgs = []
+im_files = ['wk', 'wq', 'wb', 'wh', 'wr', 'wp', 'bk', 'bq', 'bb', 'bh', 'br', 'bp']
+for filename in im_files:
+    if filename[1] == 'p':
+        num = 8
+    elif filename[1] in 'bhr':
+        num = 2
+    else:
+        num = 1
+    for i in range(num):
+        img = pygame.image.load(filename + '.png').convert()
+        if filename[0] == 'w':
+            w_imgs.append(img)
+        else:
+            b_imgs.append(img)
 
 
 class piece(object):
@@ -183,14 +204,14 @@ class game(object):
         bh2 = knight(G, 8, 2, 2)
         br1 = rook(A, 8, 1, 2)
         br2 = rook(H, 8, 2, 2)
-        bp1 = pawn(A, 2, 1, 2)
-        bp2 = pawn(B, 2, 2, 2)
-        bp3 = pawn(C, 2, 3, 2)
-        bp4 = pawn(D, 2, 4, 2)
-        bp5 = pawn(E, 2, 5, 2)
-        bp6 = pawn(F, 2, 6, 2)
-        bp7 = pawn(G, 2, 7, 2)
-        bp8 = pawn(H, 2, 8, 2)
+        bp1 = pawn(A, 7, 1, 2)
+        bp2 = pawn(B, 7, 2, 2)
+        bp3 = pawn(C, 7, 3, 2)
+        bp4 = pawn(D, 7, 4, 2)
+        bp5 = pawn(E, 7, 5, 2)
+        bp6 = pawn(F, 7, 6, 2)
+        bp7 = pawn(G, 7, 7, 2)
+        bp8 = pawn(H, 7, 8, 2)
         self.w_pcs = [wk, wq, wb1, wb2, wh1, wh2, wr1, wr2, wp1, wp2, wp3, wp4, wp5, wp6, wp7, wp8]
         self.b_pcs = [bk, bq, bb1, bb2, bh1, bh2, br1, br2, bp1, bp2, bp3, bp4, bp5, bp6, bp7, bp8]
 
@@ -514,20 +535,27 @@ class game(object):
         return [x, y]
 
     def draw(self, screen):
-        pass
+        screen.blit(BOARD, (0, 0))
+        for i in range(len(self.w_pcs)):
+            screen.blit(w_imgs[i], (self.w_pcs[i].x*BLOCK, (9-self.w_pcs[i].y)*BLOCK))
+        for i in range(len(self.b_pcs)):
+            screen.blit(b_imgs[i], (self.b_pcs[i].x*BLOCK, (9-self.b_pcs[i].y)*BLOCK))
 
 
 def main():
-    pygame.init()
-    screen = pygame.display.set_mode((WINDOW, WINDOW))  # initialize and display window
-
     Game = game()
     turn = 1
 
     running = True
+    playing = True
     while running:
         Game.draw(screen)
-        pygame.dipslay.update()
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                playing = False
+                running = False
 
         checkmate = Game.checkmate(turn)
         if checkmate:
@@ -565,13 +593,16 @@ def main():
 
         turn += 1
 
-    if turn % 2 == 1:
-        print("Black WINS!")
-    else:
-        print("White WINS!")
+    if playing:
+        if turn % 2 == 1:
+            print("Black WINS!")
+        else:
+            print("White WINS!")
+
+    pygame.quit()
 
 
 if __name__ == '__main__':
-    # main()
-    import doctest
-    doctest.testmod(verbose=True)
+    main()
+    # import doctest
+    # doctest.testmod(verbose=True)
