@@ -448,7 +448,7 @@ class game(object):
         """
             The below doctest doesn't work with the pawn object. Change the output of this function to some attributes of the piece
             to determine if it is working. Also remove the !'s because this doctest shouldn't run normally otherwise
-            it will always fail unless the program is altered to no work.
+            it will always fail unless the program is altered to not work.
 
             !>>> Game = game()
             !>>> Game.multiple_legals(Game.w_pcs[8:11])
