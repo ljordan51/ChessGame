@@ -162,7 +162,7 @@ class pawn(piece):
         self.moved = True
         super().move(new_x, new_y)
 
-    def legal(self, new_x, new_y, taking=False):
+    def legal(self, new_x, new_y, taking=True):
         fact = -2*self.col+3
         xdif = new_x-self.x
         ydif = new_y-self.y
@@ -288,6 +288,8 @@ class game(object):
             >>> Game.check_occupation('BH8', 1)
             'take'
         """
+        if '0-0' in move:
+            return 'empty'
         pos = self.get_pos_from_move(move)
         if turn % 2 == 1:
             for piece in self.b_pcs:
@@ -311,106 +313,135 @@ class game(object):
         else:
             pieces = self.b_pcs
         result = []
-        legals = []
-        indices = []
-        pos = self.get_pos_from_move(move)
-        l = move[0]
-        if l == 'K':
-            piece = pieces[0]
-            legal = piece.legal(pos[0], pos[1])
-            result = [legal, 0]
-        elif l == 'Q':
-            piece = pieces[1]
-            legal = piece.legal(pos[0], pos[1])
-            result = [legal, 1]
-        elif l == 'B':
-            piece1 = pieces[2]
-            piece2 = pieces[3]
-            if piece1.legal(pos[0], pos[1]):
-                legals.append(piece1)
-                indices.append(2)
-            if piece2.legal(pos[0], pos[1]):
-                legals.append(piece2)
-                indices.append(3)
-            if len(legals) == 0:
+        if move == '0-0-0':
+            king = pieces[0]
+            rook = pieces[6]
+            if king.moved or rook.moved:
                 result = [False]
-            elif len(legals) == 1:
-                result = [True, indices[0]]
-            else:
-                index = self.multiple_legals(legals, indices)
-                result = [True, index]
-        elif l == 'N':
-            piece1 = pieces[4]
-            piece2 = pieces[5]
-            if piece1.legal(pos[0], pos[1]):
-                legals.append(piece1)
-                indices.append(4)
-            if piece2.legal(pos[0], pos[1]):
-                legals.append(piece2)
-                indices.append(5)
-            if len(legals) == 0:
+            if self.check(turn):
                 result = [False]
-            elif len(legals) == 1:
-                result = [True, indices[0]]
-            else:
-                index = self.multiple_legals(legals, indices)
-                result = [True, index]
-        elif l == 'R':
-            piece1 = pieces[6]
-            piece2 = pieces[7]
-            if piece1.legal(pos[0], pos[1]):
-                legals.append(piece1)
-                indices.append(6)
-            if piece2.legal(pos[0], pos[1]):
-                legals.append(piece2)
-                indices.append(7)
-            if len(legals) == 0:
+            pieces[0].x = D
+            if self.check(turn):
+                pieces[0].x = E
                 result = [False]
-            elif len(legals) == 1:
-                result = [True, indices[0]]
             else:
-                index = self.multiple_legals(legals, indices)
-                result = [True, index]
-        elif l == 'P':
-            piece1 = pieces[8]
-            piece2 = pieces[9]
-            piece3 = pieces[10]
-            piece4 = pieces[11]
-            piece5 = pieces[12]
-            piece6 = pieces[13]
-            piece7 = pieces[14]
-            piece8 = pieces[15]
-            if piece1.legal(pos[0], pos[1], taking):
-                legals.append(piece1)
-                indices.append(8)
-            if piece2.legal(pos[0], pos[1], taking):
-                legals.append(piece2)
-                indices.append(9)
-            if piece3.legal(pos[0], pos[1], taking):
-                legals.append(piece3)
-                indices.append(10)
-            if piece4.legal(pos[0], pos[1], taking):
-                legals.append(piece4)
-                indices.append(11)
-            if piece5.legal(pos[0], pos[1], taking):
-                legals.append(piece5)
-                indices.append(12)
-            if piece6.legal(pos[0], pos[1], taking):
-                legals.append(piece6)
-                indices.append(13)
-            if piece7.legal(pos[0], pos[1], taking):
-                legals.append(piece7)
-                indices.append(14)
-            if piece8.legal(pos[0], pos[1], taking):
-                legals.append(piece8)
-                indices.append(15)
-            if len(legals) == 0:
+                pieces[0].x = E
+                result = [True, 6]
+        elif move == '0-0':
+            king = pieces[0]
+            rook = pieces[7]
+            if king.moved or rook.moved:
                 result = [False]
-            elif len(legals) == 1:
-                result = [True, indices[0]]
+            if self.check(turn):
+                result = [False]
+            pieces[0].x = F
+            if self.check(turn):
+                pieces[0].x = E
+                result = [False]
             else:
-                index = self.multiple_legals(legals, indices)
-                result = [True, index]
+                pieces[0].x = E
+                result = [True, 7]
+        else:
+            legals = []
+            indices = []
+            pos = self.get_pos_from_move(move)
+            l = move[0]
+            if l == 'K':
+                piece = pieces[0]
+                legal = piece.legal(pos[0], pos[1])
+                result = [legal, 0]
+            elif l == 'Q':
+                piece = pieces[1]
+                legal = piece.legal(pos[0], pos[1])
+                result = [legal, 1]
+            elif l == 'B':
+                piece1 = pieces[2]
+                piece2 = pieces[3]
+                if piece1.legal(pos[0], pos[1]):
+                    legals.append(piece1)
+                    indices.append(2)
+                if piece2.legal(pos[0], pos[1]):
+                    legals.append(piece2)
+                    indices.append(3)
+                if len(legals) == 0:
+                    result = [False]
+                elif len(legals) == 1:
+                    result = [True, indices[0]]
+                else:
+                    index = self.multiple_legals(legals, indices)
+                    result = [True, index]
+            elif l == 'N':
+                piece1 = pieces[4]
+                piece2 = pieces[5]
+                if piece1.legal(pos[0], pos[1]):
+                    legals.append(piece1)
+                    indices.append(4)
+                if piece2.legal(pos[0], pos[1]):
+                    legals.append(piece2)
+                    indices.append(5)
+                if len(legals) == 0:
+                    result = [False]
+                elif len(legals) == 1:
+                    result = [True, indices[0]]
+                else:
+                    index = self.multiple_legals(legals, indices)
+                    result = [True, index]
+            elif l == 'R':
+                piece1 = pieces[6]
+                piece2 = pieces[7]
+                if piece1.legal(pos[0], pos[1]):
+                    legals.append(piece1)
+                    indices.append(6)
+                if piece2.legal(pos[0], pos[1]):
+                    legals.append(piece2)
+                    indices.append(7)
+                if len(legals) == 0:
+                    result = [False]
+                elif len(legals) == 1:
+                    result = [True, indices[0]]
+                else:
+                    index = self.multiple_legals(legals, indices)
+                    result = [True, index]
+            elif l == 'P':
+                piece1 = pieces[8]
+                piece2 = pieces[9]
+                piece3 = pieces[10]
+                piece4 = pieces[11]
+                piece5 = pieces[12]
+                piece6 = pieces[13]
+                piece7 = pieces[14]
+                piece8 = pieces[15]
+                if piece1.legal(pos[0], pos[1], taking):
+                    legals.append(piece1)
+                    indices.append(8)
+                if piece2.legal(pos[0], pos[1], taking):
+                    legals.append(piece2)
+                    indices.append(9)
+                if piece3.legal(pos[0], pos[1], taking):
+                    legals.append(piece3)
+                    indices.append(10)
+                if piece4.legal(pos[0], pos[1], taking):
+                    legals.append(piece4)
+                    indices.append(11)
+                if piece5.legal(pos[0], pos[1], taking):
+                    legals.append(piece5)
+                    indices.append(12)
+                if piece6.legal(pos[0], pos[1], taking):
+                    legals.append(piece6)
+                    indices.append(13)
+                if piece7.legal(pos[0], pos[1], taking):
+                    legals.append(piece7)
+                    indices.append(14)
+                if piece8.legal(pos[0], pos[1], taking):
+                    legals.append(piece8)
+                    indices.append(15)
+                if len(legals) == 0:
+                    result = [False]
+                elif len(legals) == 1:
+                    result = [True, indices[0]]
+                else:
+                    index = self.multiple_legals(legals, indices)
+                    result = [True, index]
         return result
 
     def multiple_legals(self, legals, indices):
@@ -505,7 +536,7 @@ class game(object):
                         return False
             return True
         else:
-            if (not piece.moved) and (move[2] == 4 or move[2] == 5):
+            if (not piece.moved) and (move[2] == '4' or move[2] == '5'):
                 if self.check_space(piece.x, piece.y + ydif/2, 'P', turn):
                     return False
             return True
@@ -520,7 +551,25 @@ class game(object):
             return True
         return False
 
-    def check(self, piece_index, move, turn):
+    def check_after_move(self, piece_index, move, turn):
+        return False
+
+    def check(self, turn):
+        if turn % 2 == 1:
+            x = self.w_pcs[0].x
+            y = self.w_pcs[0].y
+            pieces = self.b_pcs
+        else:
+            x = self.b_pcs[0].x
+            y = self.b_pcs[0].y
+            pieces = self.w_pcs
+        turn += 1
+        for piece in pieces:
+            if piece.legal(x, y):
+                piece_index = pieces.index(piece)
+                move = 'P' + self.get_space_from_pos(x, y)
+                if self.check_path(piece_index, move, turn):
+                    return True
         return False
 
     def move_piece(self, piece_index, move, turn, taking):
@@ -564,10 +613,7 @@ class game(object):
 
 
 def main():
-    print('Welcome to CHESS! by Lucky Jordan.')
-    print('Type help for examples of commands if not already listed.')
-    print('Type quit to quit.')
-    print('Type reset to reset the board.')
+    print('Welcome to CHESS! by Lucky Jordan.\nType help for examples of commands.\nType quit to quit.\nType reset to reset the board.')
     Game = game()
     turn = 1
 
@@ -578,14 +624,9 @@ def main():
         Game.draw(screen)
         pygame.display.update()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                playing = False
-                running = False
-                continue
-
         checkmate = Game.checkmate(turn)
         if checkmate:
+            print('CHECKMATE!')
             running = False
             continue
 
@@ -623,17 +664,33 @@ def main():
             turn = 1
             continue
 
+        real_move = move
+        if '0-0' in move:
+            if turn % 2 == 1:
+                row = '1'
+            else:
+                row = '8'
+            move = 'RE' + row
+
         clearPath = Game.check_path(piece_index, move, turn)
         if not clearPath:
             print('There is at least one piece blocking your path. Try again.')
             continue
 
-        check = Game.check(piece_index, move, turn)
+        check = Game.check_after_move(piece_index, real_move, turn)
         if check:
-            print('That move puts your king in check. Try again.')
+            print('That move leaves your king in check. Try again.')
             continue
 
-        Game.move_piece(piece_index, move, turn, taking)
+        Game.move_piece(piece_index, real_move, turn, taking)
+        """ need to check legality logic for castling, need to set up move_piece for castling, need to set up test func to remove all pawns
+            need to handle queening of pawns
+            need to handle checkmate
+            need to handle active/non-active pieces
+            need to add good commenting
+            need to add good funcs for troubleshooting code
+            need to make functions more modular so as to not edit good code too much
+        """
 
         turn += 1
 
