@@ -41,6 +41,7 @@ class piece(object):
         self.y = y
         self.num = num
         self.col = col
+        self.active = True
 
     def move(self, new_x, new_y):
         self.x = new_x
@@ -49,13 +50,15 @@ class piece(object):
     def taken(self):
         self.x = 0
         self.y = 0
+        self.active = False
 
-    def legal(self, new_x, new_y):
+    def legal(self, new_x, new_y, taking=True):
         return True
 
 
 class king(piece):
     def __init__(self, x, y, num=1, col=1):
+        self.type = 'king'
         self.moved = False
         super().__init__(x, y, num, col)
 
@@ -63,7 +66,7 @@ class king(piece):
         self.moved = True
         super().move(new_x, new_y)
 
-    def legal(self, new_x, new_y):
+    def legal(self, new_x, new_y, taking=True):
         if new_x == self.x and new_y == self.y:
             return False
         xdif = abs(new_x-self.x)
@@ -74,7 +77,11 @@ class king(piece):
 
 
 class queen(piece):
-    def legal(self, new_x, new_y):
+    def __init__(self, x, y, num=1, col=1):
+        self.type = 'queen'
+        super().__init__(x, y, num, col)
+
+    def legal(self, new_x, new_y, taking=True):
         if new_x == self.x and new_y == self.y:
             return False
         xdif = abs(new_x-self.x)
@@ -85,7 +92,11 @@ class queen(piece):
 
 
 class bishop(piece):
-    def legal(self, new_x, new_y):
+    def __init__(self, x, y, num=1, col=1):
+        self.type = 'bishop'
+        super().__init__(x, y, num, col)
+
+    def legal(self, new_x, new_y, taking=True):
         if new_x == self.x and new_y == self.y:
             return False
         xdif = abs(new_x-self.x)
@@ -96,7 +107,11 @@ class bishop(piece):
 
 
 class knight(piece):
-    def legal(self, new_x, new_y):
+    def __init__(self, x, y, num=1, col=1):
+        self.type = 'knight'
+        super().__init__(x, y, num, col)
+
+    def legal(self, new_x, new_y, taking=True):
         xdif = abs(new_x-self.x)
         ydif = abs(new_y-self.y)
         if not ((xdif == 2 and ydif == 1) or (xdif == 1 and ydif == 2)):
@@ -106,6 +121,7 @@ class knight(piece):
 
 class rook(piece):
     def __init__(self, x, y, num=1, col=1):
+        self.type = 'rook'
         self.moved = False
         super().__init__(x, y, num, col)
 
@@ -113,7 +129,7 @@ class rook(piece):
         self.moved = True
         super().move(new_x, new_y)
 
-    def legal(self, new_x, new_y):
+    def legal(self, new_x, new_y, taking=True):
         if new_x == self.x and new_y == self.y:
             return False
         xdif = abs(new_x-self.x)
@@ -155,6 +171,7 @@ class pawn(piece):
         False
     """
     def __init__(self, x, y, num=1, col=1):
+        self.type = 'pawn'
         self.moved = False
         super().__init__(x, y, num, col)
 
@@ -345,103 +362,19 @@ class game(object):
             legals = []
             indices = []
             pos = self.get_pos_from_move(move)
-            l = move[0]
-            if l == 'K':
-                piece = pieces[0]
-                legal = piece.legal(pos[0], pos[1])
-                result = [legal, 0]
-            elif l == 'Q':
-                piece = pieces[1]
-                legal = piece.legal(pos[0], pos[1])
-                result = [legal, 1]
-            elif l == 'B':
-                piece1 = pieces[2]
-                piece2 = pieces[3]
-                if piece1.legal(pos[0], pos[1]):
-                    legals.append(piece1)
-                    indices.append(2)
-                if piece2.legal(pos[0], pos[1]):
-                    legals.append(piece2)
-                    indices.append(3)
-                if len(legals) == 0:
-                    result = [False]
-                elif len(legals) == 1:
-                    result = [True, indices[0]]
-                else:
-                    index = self.multiple_legals(legals, indices)
-                    result = [True, index]
-            elif l == 'N':
-                piece1 = pieces[4]
-                piece2 = pieces[5]
-                if piece1.legal(pos[0], pos[1]):
-                    legals.append(piece1)
-                    indices.append(4)
-                if piece2.legal(pos[0], pos[1]):
-                    legals.append(piece2)
-                    indices.append(5)
-                if len(legals) == 0:
-                    result = [False]
-                elif len(legals) == 1:
-                    result = [True, indices[0]]
-                else:
-                    index = self.multiple_legals(legals, indices)
-                    result = [True, index]
-            elif l == 'R':
-                piece1 = pieces[6]
-                piece2 = pieces[7]
-                if piece1.legal(pos[0], pos[1]):
-                    legals.append(piece1)
-                    indices.append(6)
-                if piece2.legal(pos[0], pos[1]):
-                    legals.append(piece2)
-                    indices.append(7)
-                if len(legals) == 0:
-                    result = [False]
-                elif len(legals) == 1:
-                    result = [True, indices[0]]
-                else:
-                    index = self.multiple_legals(legals, indices)
-                    result = [True, index]
-            elif l == 'P':
-                piece1 = pieces[8]
-                piece2 = pieces[9]
-                piece3 = pieces[10]
-                piece4 = pieces[11]
-                piece5 = pieces[12]
-                piece6 = pieces[13]
-                piece7 = pieces[14]
-                piece8 = pieces[15]
-                if piece1.legal(pos[0], pos[1], taking):
-                    legals.append(piece1)
-                    indices.append(8)
-                if piece2.legal(pos[0], pos[1], taking):
-                    legals.append(piece2)
-                    indices.append(9)
-                if piece3.legal(pos[0], pos[1], taking):
-                    legals.append(piece3)
-                    indices.append(10)
-                if piece4.legal(pos[0], pos[1], taking):
-                    legals.append(piece4)
-                    indices.append(11)
-                if piece5.legal(pos[0], pos[1], taking):
-                    legals.append(piece5)
-                    indices.append(12)
-                if piece6.legal(pos[0], pos[1], taking):
-                    legals.append(piece6)
-                    indices.append(13)
-                if piece7.legal(pos[0], pos[1], taking):
-                    legals.append(piece7)
-                    indices.append(14)
-                if piece8.legal(pos[0], pos[1], taking):
-                    legals.append(piece8)
-                    indices.append(15)
-                if len(legals) == 0:
-                    result = [False]
-                elif len(legals) == 1:
-                    result = [True, indices[0]]
-                else:
-                    index = self.multiple_legals(legals, indices)
-                    result = [True, index]
+            l = move[0].lower()
+            potentials = [(index, piece) for index, piece in enumerate(pieces) if piece.type[0].lower() == l and piece.active]
+            for index, piece in potentials:
+                if piece.legal(pos[0], pos[1], taking):
+                    legals.append(piece)
+                    indices.append(index)
+            if len(legals) == 0:
+                result = [False]
+            elif len(legals) == 1:
+                result = [True, indices[0]]
+            else:
+                index = self.multiple_legals(legals, indices)
+                result = [True, index]
         return result
 
     def multiple_legals(self, legals, indices):
