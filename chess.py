@@ -34,8 +34,10 @@ class piece(object):
         self.y = y
         self.col = col
         self.active = True
+        self.moved = False
 
     def move(self, new_x, new_y):
+        self.moved = True
         self.x = new_x
         self.y = new_y
 
@@ -51,12 +53,7 @@ class piece(object):
 class king(piece):
     def __init__(self, x, y, col=1):
         self.type = 'K'
-        self.moved = False
         super().__init__(x, y, col)
-
-    def move(self, new_x, new_y):
-        self.moved = True
-        super().move(new_x, new_y)
 
     def legal(self, new_x, new_y, taking=True):
         if new_x == self.x and new_y == self.y:
@@ -114,12 +111,7 @@ class knight(piece):
 class rook(piece):
     def __init__(self, x, y, col=1):
         self.type = 'R'
-        self.moved = False
         super().__init__(x, y, col)
-
-    def move(self, new_x, new_y):
-        self.moved = True
-        super().move(new_x, new_y)
 
     def legal(self, new_x, new_y, taking=True):
         if new_x == self.x and new_y == self.y:
@@ -164,12 +156,7 @@ class pawn(piece):
     """
     def __init__(self, x, y, col=1):
         self.type = 'P'
-        self.moved = False
         super().__init__(x, y, col)
-
-    def move(self, new_x, new_y):
-        self.moved = True
-        super().move(new_x, new_y)
 
     def legal(self, new_x, new_y, taking=True):
         fact = -2*self.col+3
@@ -482,8 +469,50 @@ class game(object):
             return True
         return False
 
-    def check_after_move(self, piece_index, move, turn):
-        return False
+    def check_after_move(self, piece_index, move, turn, taking):
+        if turn % 2 == 1:
+            piece = self.w_pcs[piece_index]
+            opposing = self.b_pcs
+        else:
+            piece = self.b_pcs[piece_index]
+            opposing = self.w_pcs
+        if taking:
+            pos = self.get_pos_from_move(move)
+            for enemy_index, enemy in enumerate(opposing):
+                if enemy.x == pos[0] and enemy.y == pos[1]:
+                    tx, ty, tactive, tmoved = enemy.x, enemy.y, enemy.active, enemy.moved
+                    taken_index = enemy_index
+        px, py, pmoved = piece.x, piece.y, piece.moved
+        self.move_piece(piece_index, move, turn, taking)
+        res = self.check(turn)
+        if turn % 2 == 1:
+            self.w_pcs[piece_index].x = px
+            self.w_pcs[piece_index].y = py
+            self.w_pcs[piece_index].moved = pmoved
+            if taking:
+                self.b_pcs[taken_index].x = tx
+                self.b_pcs[taken_index].y = ty
+                self.b_pcs[taken_index].active = tactive
+                self.b_pcs[taken_index].moved = tmoved
+        else:
+            self.b_pcs[piece_index].x = px
+            self.b_pcs[piece_index].y = py
+            self.b_pcs[piece_index].moved = pmoved
+            if taking:
+                self.w_pcs[taken_index].x = tx
+                self.w_pcs[taken_index].y = ty
+                self.w_pcs[taken_index].active = tactive
+                self.w_pcs[taken_index].moved = tmoved
+        if '0-0' in move:
+            if turn % 2 == 1:
+                self.w_pcs[0].x = E
+                self.w_pcs[0].y = 1
+                self.w_pcs[0].moved = False
+            else:
+                self.b_pcs[0].x = E
+                self.b_pcs[0].y = 8
+                self.b_pcs[0].moved = False
+        return res
 
     def check(self, turn):
         if turn % 2 == 1:
@@ -495,9 +524,8 @@ class game(object):
             y = self.b_pcs[0].y
             pieces = self.w_pcs
         turn += 1
-        for piece in pieces:
+        for piece_index, piece in enumerate(pieces):
             if piece.legal(x, y):
-                piece_index = pieces.index(piece)
                 move = 'P' + self.get_space_from_pos(x, y)
                 if self.check_path(piece_index, move, turn):
                     return True
@@ -627,17 +655,18 @@ def main():
             print('There is at least one piece blocking your path. Try again.')
             continue
 
-        check = Game.check_after_move(piece_index, move, turn)
+        check = Game.check_after_move(piece_index, move, turn, taking)
         if check:
             print('That move leaves your king in check. Try again.')
             continue
 
         Game.move_piece(piece_index, move, turn, taking)
         """ need to handle checkmate
+            need to handle check after move
             need to add good commenting
             need to add good funcs for troubleshooting code
             need to make functions more modular so as to not edit good code too much (check path)
-            need to fix multiple_legals because doesn't account for clearPath
+            need to fix multiple_legals because doesn't account for clearPath or check after move
         """
 
         turn += 1
