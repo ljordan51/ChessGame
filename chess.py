@@ -223,6 +223,8 @@ class game(object):
                 return move.lower()
             if move.lower() == 'reset':
                 return move.lower()
+            if move.lower() == 'testing':
+                return move.lower()
             if move.lower() == 'help':
                 self.print_opts()
                 continue
@@ -625,6 +627,14 @@ def main():
             Game.reset()
             turn = 1
             continue
+        if move == 'testing':
+            for piece in Game.w_pcs:
+                if piece.type.lower() == 'p':
+                    piece.taken()
+            for piece in Game.b_pcs:
+                if piece.type.lower() != 'k' and piece.type.lower() != 'q':
+                    piece.taken()
+            continue
 
         occupied = Game.check_occupation(move, turn)
         if occupied == 'blocked':
@@ -662,7 +672,6 @@ def main():
 
         Game.move_piece(piece_index, move, turn, taking)
         """ need to handle checkmate
-            need to handle check after move
             need to add good commenting
             need to add good funcs for troubleshooting code
             need to make functions more modular so as to not edit good code too much (check path)
