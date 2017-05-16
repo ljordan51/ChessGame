@@ -633,8 +633,7 @@ def main():
             continue
 
         Game.move_piece(piece_index, move, turn, taking)
-        """ need to handle queening of pawns
-            need to handle checkmate
+        """ need to handle checkmate
             need to add good commenting
             need to add good funcs for troubleshooting code
             need to make functions more modular so as to not edit good code too much (check path)
