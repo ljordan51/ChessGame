@@ -17,29 +17,21 @@ pygame.init()
 screen = pygame.display.set_mode((WINDOW, WINDOW))  # initialize and display window
 
 BOARD = pygame.image.load('chess_board.png').convert_alpha()
-w_imgs = []
-b_imgs = []
-im_files = ['wk', 'wq', 'wb', 'wh', 'wr', 'wp', 'bk', 'bq', 'bb', 'bh', 'br', 'bp']
+w_imgs = {}
+b_imgs = {}
+im_files = ['wk', 'wq', 'wb', 'wn', 'wr', 'wp', 'bk', 'bq', 'bb', 'bn', 'br', 'bp']
 for filename in im_files:
-    if filename[1] == 'p':
-        num = 8
-    elif filename[1] in 'bhr':
-        num = 2
+    img = pygame.image.load(filename + '.png').convert_alpha()
+    if filename[0] == 'w':
+        w_imgs[filename[1]] = img
     else:
-        num = 1
-    for i in range(num):
-        img = pygame.image.load(filename + '.png').convert_alpha()
-        if filename[0] == 'w':
-            w_imgs.append(img)
-        else:
-            b_imgs.append(img)
+        b_imgs[filename[1]] = img
 
 
 class piece(object):
-    def __init__(self, x, y, num=1, col=1):
+    def __init__(self, x, y, col=1):
         self.x = x
         self.y = y
-        self.num = num
         self.col = col
         self.active = True
 
@@ -57,10 +49,10 @@ class piece(object):
 
 
 class king(piece):
-    def __init__(self, x, y, num=1, col=1):
-        self.type = 'king'
+    def __init__(self, x, y, col=1):
+        self.type = 'K'
         self.moved = False
-        super().__init__(x, y, num, col)
+        super().__init__(x, y, col)
 
     def move(self, new_x, new_y):
         self.moved = True
@@ -77,9 +69,9 @@ class king(piece):
 
 
 class queen(piece):
-    def __init__(self, x, y, num=1, col=1):
-        self.type = 'queen'
-        super().__init__(x, y, num, col)
+    def __init__(self, x, y, col=1):
+        self.type = 'Q'
+        super().__init__(x, y, col)
 
     def legal(self, new_x, new_y, taking=True):
         if new_x == self.x and new_y == self.y:
@@ -92,9 +84,9 @@ class queen(piece):
 
 
 class bishop(piece):
-    def __init__(self, x, y, num=1, col=1):
-        self.type = 'bishop'
-        super().__init__(x, y, num, col)
+    def __init__(self, x, y, col=1):
+        self.type = 'B'
+        super().__init__(x, y, col)
 
     def legal(self, new_x, new_y, taking=True):
         if new_x == self.x and new_y == self.y:
@@ -107,9 +99,9 @@ class bishop(piece):
 
 
 class knight(piece):
-    def __init__(self, x, y, num=1, col=1):
-        self.type = 'knight'
-        super().__init__(x, y, num, col)
+    def __init__(self, x, y, col=1):
+        self.type = 'N'
+        super().__init__(x, y, col)
 
     def legal(self, new_x, new_y, taking=True):
         xdif = abs(new_x-self.x)
@@ -120,10 +112,10 @@ class knight(piece):
 
 
 class rook(piece):
-    def __init__(self, x, y, num=1, col=1):
-        self.type = 'rook'
+    def __init__(self, x, y, col=1):
+        self.type = 'R'
         self.moved = False
-        super().__init__(x, y, num, col)
+        super().__init__(x, y, col)
 
     def move(self, new_x, new_y):
         self.moved = True
@@ -170,10 +162,10 @@ class pawn(piece):
         >>> pawnb.legal(3, 4)
         False
     """
-    def __init__(self, x, y, num=1, col=1):
-        self.type = 'pawn'
+    def __init__(self, x, y, col=1):
+        self.type = 'P'
         self.moved = False
-        super().__init__(x, y, num, col)
+        super().__init__(x, y, col)
 
     def move(self, new_x, new_y):
         self.moved = True
@@ -200,35 +192,35 @@ class game(object):
         wk = king(E, 1)
         wq = queen(D, 1)
         wb1 = bishop(C, 1)
-        wb2 = bishop(F, 1, 2)
+        wb2 = bishop(F, 1)
         wh1 = knight(B, 1)
-        wh2 = knight(G, 1, 2)
+        wh2 = knight(G, 1)
         wr1 = rook(A, 1)
-        wr2 = rook(H, 1, 2)
+        wr2 = rook(H, 1)
         wp1 = pawn(A, 2)
-        wp2 = pawn(B, 2, 2)
-        wp3 = pawn(C, 2, 3)
-        wp4 = pawn(D, 2, 4)
-        wp5 = pawn(E, 2, 5)
-        wp6 = pawn(F, 2, 6)
-        wp7 = pawn(G, 2, 7)
-        wp8 = pawn(H, 2, 8)
-        bk = king(E, 8, 1, 2)
-        bq = queen(D, 8, 1, 2)
-        bb1 = bishop(C, 8, 1, 2)
-        bb2 = bishop(F, 8, 2, 2)
-        bh1 = knight(B, 8, 1, 2)
-        bh2 = knight(G, 8, 2, 2)
-        br1 = rook(A, 8, 1, 2)
-        br2 = rook(H, 8, 2, 2)
-        bp1 = pawn(A, 7, 1, 2)
-        bp2 = pawn(B, 7, 2, 2)
-        bp3 = pawn(C, 7, 3, 2)
-        bp4 = pawn(D, 7, 4, 2)
-        bp5 = pawn(E, 7, 5, 2)
-        bp6 = pawn(F, 7, 6, 2)
-        bp7 = pawn(G, 7, 7, 2)
-        bp8 = pawn(H, 7, 8, 2)
+        wp2 = pawn(B, 2)
+        wp3 = pawn(C, 2)
+        wp4 = pawn(D, 2)
+        wp5 = pawn(E, 2)
+        wp6 = pawn(F, 2)
+        wp7 = pawn(G, 2)
+        wp8 = pawn(H, 2)
+        bk = king(E, 8, 2)
+        bq = queen(D, 8, 2)
+        bb1 = bishop(C, 8, 2)
+        bb2 = bishop(F, 8, 2)
+        bh1 = knight(B, 8, 2)
+        bh2 = knight(G, 8, 2)
+        br1 = rook(A, 8, 2)
+        br2 = rook(H, 8, 2)
+        bp1 = pawn(A, 7, 2)
+        bp2 = pawn(B, 7, 2)
+        bp3 = pawn(C, 7, 2)
+        bp4 = pawn(D, 7, 2)
+        bp5 = pawn(E, 7, 2)
+        bp6 = pawn(F, 7, 2)
+        bp7 = pawn(G, 7, 2)
+        bp8 = pawn(H, 7, 2)
         self.w_pcs = [wk, wq, wb1, wb2, wh1, wh2, wr1, wr2, wp1, wp2, wp3, wp4, wp5, wp6, wp7, wp8]
         self.b_pcs = [bk, bq, bb1, bb2, bh1, bh2, br1, br2, bp1, bp2, bp3, bp4, bp5, bp6, bp7, bp8]
 
@@ -329,41 +321,42 @@ class game(object):
             pieces = self.w_pcs
         else:
             pieces = self.b_pcs
-        result = []
         if move == '0-0-0':
             king = pieces[0]
             rook = pieces[6]
             if king.moved or rook.moved:
                 result = [False]
-            if self.check(turn):
-                result = [False]
-            pieces[0].x = D
-            if self.check(turn):
-                pieces[0].x = E
-                result = [False]
             else:
-                pieces[0].x = E
-                result = [True, 6]
+                if self.check(turn):
+                    result = [False]
+                else:
+                    pieces[0].x = D
+                    if self.check(turn):
+                        result = [False]
+                    else:
+                        result = [True, 6]
+                    pieces[0].x = E
         elif move == '0-0':
             king = pieces[0]
             rook = pieces[7]
             if king.moved or rook.moved:
                 result = [False]
-            if self.check(turn):
-                result = [False]
-            pieces[0].x = F
-            if self.check(turn):
-                pieces[0].x = E
-                result = [False]
             else:
-                pieces[0].x = E
-                result = [True, 7]
+                if self.check(turn):
+                    result = [False]
+                else:
+                    pieces[0].x = F
+                    if self.check(turn):
+                        result = [False]
+                    else:
+                        result = [True, 7]
+                    pieces[0].x = E
         else:
             legals = []
             indices = []
             pos = self.get_pos_from_move(move)
             l = move[0].lower()
-            potentials = [(index, piece) for index, piece in enumerate(pieces) if piece.type[0].lower() == l and piece.active]
+            potentials = [(index, piece) for index, piece in enumerate(pieces) if piece.type.lower() == l and piece.active]
             for index, piece in potentials:
                 if piece.legal(pos[0], pos[1], taking):
                     legals.append(piece)
@@ -427,17 +420,22 @@ class game(object):
         return space
 
     def check_path(self, piece_index, move, turn):
-        pos = self.get_pos_from_move(move)
         if turn % 2 == 1:
             pieces = self.w_pcs
+            row = '1'
         else:
             pieces = self.b_pcs
+            row = '8'
+        if '0-0' in move:
+            move = 'RE' + row
+        pos = self.get_pos_from_move(move)
         piece = pieces[piece_index]
         xdif = pos[0] - piece.x
         ydif = pos[1] - piece.y
-        if piece_index == 0:
+        p_type = piece.type.lower()
+        if p_type == 'k':
             return True
-        elif piece_index == 1:
+        elif p_type == 'q':
             if xdif == 0:
                 for i in range(1, abs(ydif)):
                         if self.check_space(piece.x, piece.y + i*(ydif/abs(ydif)), 'Q', turn):
@@ -451,14 +449,14 @@ class game(object):
                     if self.check_space(piece.x + i*(xdif/abs(xdif)), piece.y + i*(ydif/abs(ydif)), 'Q', turn):
                         return False
             return True
-        elif piece_index <= 3:
+        elif p_type == 'b':
             for i in range(1, abs(ydif)):
-                if self.check_space(piece.x + i*(xdif/abs(xdif)), piece.y + i*(ydif/abs(ydif)), 'Q', turn):
+                if self.check_space(piece.x + i*(xdif/abs(xdif)), piece.y + i*(ydif/abs(ydif)), 'B', turn):
                     return False
             return True
-        elif piece_index <= 5:
+        elif p_type == 'n':
             return True
-        elif piece_index <= 7:
+        elif p_type == 'r':
             if xdif == 0:
                 for i in range(1, abs(ydif)):
                     if self.check_space(piece.x, piece.y + i*(ydif/abs(ydif)), 'R', turn):
@@ -506,20 +504,47 @@ class game(object):
         return False
 
     def move_piece(self, piece_index, move, turn, taking):
-        pos = self.get_pos_from_move(move)
-        if taking:
-            if turn % 2 == 1:
-                for piece in self.b_pcs:
-                    if piece.x == pos[0] and piece.y == pos[1]:
-                        piece.taken()
-            else:
-                for piece in self.w_pcs:
-                    if piece.x == pos[0] and piece.y == pos[1]:
-                        piece.taken()
-        if turn % 2 == 1:
-            self.w_pcs[piece_index].move(pos[0], pos[1])
+        if '0-0' in move:
+            self.castling(piece_index, move, turn)
         else:
-            self.b_pcs[piece_index].move(pos[0], pos[1])
+            pos = self.get_pos_from_move(move)
+            if taking:
+                if turn % 2 == 1:
+                    for piece in self.b_pcs:
+                        if piece.x == pos[0] and piece.y == pos[1]:
+                            piece.taken()
+                else:
+                    for piece in self.w_pcs:
+                        if piece.x == pos[0] and piece.y == pos[1]:
+                            piece.taken()
+            if turn % 2 == 1:
+                self.w_pcs[piece_index].move(pos[0], pos[1])
+                if self.w_pcs[piece_index].type.lower() == 'p' and pos[1] == 8:
+                    self.w_pcs.append(queen(pos[0], pos[1]))
+                    self.w_pcs[piece_index].taken()
+            else:
+                self.b_pcs[piece_index].move(pos[0], pos[1])
+                if self.b_pcs[piece_index].type.lower() == 'p' and pos[1] == 1:
+                    self.b_pcs.append(queen(pos[0], pos[1]))
+                    self.b_pcs[piece_index].taken()
+
+    def castling(self, piece_index, move, turn):
+        if turn % 2 == 1:
+            row = 1
+            if move == '0-0-0':
+                self.w_pcs[piece_index].move(D, row)
+                self.w_pcs[0].move(C, row)
+            elif move == '0-0':
+                self.w_pcs[piece_index].move(F, row)
+                self.w_pcs[0].move(G, row)
+        else:
+            row = 8
+            if move == '0-0-0':
+                self.b_pcs[piece_index].move(D, row)
+                self.b_pcs[0].move(C, row)
+            elif move == '0-0':
+                self.b_pcs[piece_index].move(F, row)
+                self.b_pcs[0].move(G, row)
 
     def get_pos_from_move(self, move):
         """
@@ -536,10 +561,10 @@ class game(object):
         return [x, y]
 
     def draw(self, screen):
-        for i in range(len(self.w_pcs)):
-            screen.blit(w_imgs[i], (self.w_pcs[i].x*BLOCK, (9-self.w_pcs[i].y)*BLOCK))
-        for i in range(len(self.b_pcs)):
-            screen.blit(b_imgs[i], (self.b_pcs[i].x*BLOCK, (9-self.b_pcs[i].y)*BLOCK))
+        for piece in self.w_pcs:
+            screen.blit(w_imgs[piece.type.lower()], (piece.x*BLOCK, (9-piece.y)*BLOCK))
+        for piece in self.b_pcs:
+            screen.blit(b_imgs[piece.type.lower()], (piece.x*BLOCK, (9-piece.y)*BLOCK))
 
     def reset(self):
         self.__init__()
@@ -597,32 +622,23 @@ def main():
             turn = 1
             continue
 
-        real_move = move
-        if '0-0' in move:
-            if turn % 2 == 1:
-                row = '1'
-            else:
-                row = '8'
-            move = 'RE' + row
-
         clearPath = Game.check_path(piece_index, move, turn)
         if not clearPath:
             print('There is at least one piece blocking your path. Try again.')
             continue
 
-        check = Game.check_after_move(piece_index, real_move, turn)
+        check = Game.check_after_move(piece_index, move, turn)
         if check:
             print('That move leaves your king in check. Try again.')
             continue
 
-        Game.move_piece(piece_index, real_move, turn, taking)
-        """ need to check legality logic for castling, need to set up move_piece for castling, need to set up test func to remove all pawns
-            need to handle queening of pawns
+        Game.move_piece(piece_index, move, turn, taking)
+        """ need to handle queening of pawns
             need to handle checkmate
-            need to handle active/non-active pieces
             need to add good commenting
             need to add good funcs for troubleshooting code
-            need to make functions more modular so as to not edit good code too much
+            need to make functions more modular so as to not edit good code too much (check path)
+            need to fix multiple_legals because doesn't account for clearPath
         """
 
         turn += 1
