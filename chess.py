@@ -124,36 +124,6 @@ class rook(piece):
 
 
 class pawn(piece):
-    """
-        >>> pawnw = pawn(3, 2)
-        >>> pawnw.legal(3, 3)
-        True
-        >>> pawnw.legal(4, 3)
-        False
-        >>> pawnw.legal(4, 3, True)
-        True
-        >>> pawnw.legal(3, 4)
-        True
-        >>> pawnw.legal(3, 4, True)
-        False
-        >>> pawnw.move(3, 3)
-        >>> pawnw.legal(3, 5)
-        False
-        >>> pawnb = pawn(3, 7, 1, 2)
-        >>> pawnb.legal(3, 6)
-        True
-        >>> pawnb.legal(4, 6)
-        False
-        >>> pawnb.legal(4, 6, True)
-        True
-        >>> pawnb.legal(3, 5)
-        True
-        >>> pawnb.legal(3, 5, True)
-        False
-        >>> pawnb.move(3, 6)
-        >>> pawnb.legal(3, 4)
-        False
-    """
     def __init__(self, x, y, col=1):
         self.type = 'P'
         super().__init__(x, y, col)
@@ -237,30 +207,6 @@ class game(object):
               '0-0-0 = queenside castle' + '\n' + '0-0 = kingside castle')
 
     def check_input(self, move):
-        """ Checks string input 'move' to see if it is an appropriate input.
-
-            move: 3 or 5 letter string with user input for move ex: 'PE7'
-
-            >>> Game = game()
-            >>> Game.check_input('PE7')
-            True
-            >>> Game.check_input('0-0')
-            True
-            >>> Game.check_input('0-0-0')
-            True
-            >>> Game.check_input('PE9')
-            False
-            >>> Game.check_input('PJ7')
-            False
-            >>> Game.check_input('LE7')
-            False
-            >>> Game.check_input('P-0')
-            False
-            >>> Game.check_input('0-E')
-            False
-            >>> Game.check_input('PE7X')
-            False
-        """
         ones = 'PRNBQK'
         if move == '0-0' or move == '0-0-0':
             return True
@@ -348,15 +294,6 @@ class game(object):
         return spaces
 
     def check_occupation(self, move, turn):
-        """
-            >>> Game = game()
-            >>> Game.check_occupation('PA1', 1)
-            'blocked'
-            >>> Game.check_occupation('KC5', 2)
-            'empty'
-            >>> Game.check_occupation('BH8', 1)
-            'take'
-        """
         if '0-0' in move:
             return 'empty'
         pos = self.get_pos_from_move(move)
@@ -428,19 +365,6 @@ class game(object):
         return result
 
     def multiple_legals(self, legals, indices):
-        """
-            The below doctest doesn't work with the pawn object. Change the output of this function to some attributes of the piece
-            to determine if it is working. Also remove the !'s because this doctest shouldn't run normally otherwise
-            it will always fail unless the program is altered to not work.
-
-            !>>> Game = game()
-            !>>> Game.multiple_legals(Game.w_pcs[8:11])
-            Multiple pieces can make that move. Please choose the space that the piece you want to move is on from the choices below.
-            A2
-            B2
-            C2
-            [1, 2]
-        """
         spaces = []
         print('Multiple pieces can make that move. Please choose the space that the piece you want to move is on from the choices below.')
         for piece in legals:
@@ -462,15 +386,6 @@ class game(object):
         return index
 
     def get_space_from_pos(self, x, y):
-        """
-            >>> Game = game()
-            >>> Game.get_space_from_pos(1, 1)
-            'A1'
-            >>> Game.get_space_from_pos(3, 5)
-            'C5'
-            >>> Game.get_space_from_pos(8, 8)
-            'H8'
-        """
         space = ''
         space = space + COLS[x-1]
         space = space + str(y)
@@ -680,15 +595,6 @@ class game(object):
                 self.b_pcs[0].move(G, row)
 
     def get_pos_from_move(self, move):
-        """
-            >>> Game = game()
-            >>> Game.get_pos_from_move('PA1')
-            [1, 1]
-            >>> Game.get_pos_from_move('KC5')
-            [3, 5]
-            >>> Game.get_pos_from_move('BH8')
-            [8, 8]
-        """
         x = COLS.index(move[1]) + 1
         y = int(move[2])
         return [x, y]
@@ -780,10 +686,6 @@ def main():
             continue
 
         Game.move_piece(piece_index, move, turn, taking)
-        """ need to add good commenting
-            need to make functions more modular so as to not edit good code too much (check path)
-            need to add undo option
-        """
 
         turn += 1
 
@@ -798,5 +700,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # import doctest
-    # doctest.testmod(verbose=True)
