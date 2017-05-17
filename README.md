@@ -17,17 +17,17 @@ while loop that controls the program.
 
 5. Check target space. If blocked, get new input. If empty or guarded, store that information.
 
-4. Find all pieces which match the move input and can legally carry out the move. If none are found, get new input.
+6. Find all pieces which match the move input and can legally carry out the move. If none are found, get new input.
 
-5. Of the legal pieces which match the input, find all pieces whose paths are clear based on the movement rules for each chess piece type. If none are found, get new input.
+7. Of the legal pieces which match the input, find all pieces whose paths are clear based on the movement rules for each chess piece type. If none are found, get new input.
 
-6. Of the legal pieces which match the input with a clear path, find all pieces whose moves do not leave the king in check. If none are found, get new input.
+8. Of the legal pieces which match the input with a clear path, find all pieces whose moves do not leave the king in check. If none are found, get new input.
 
-8. If multiple pieces match the input, can legally make the move, have a clear path, and do not leave the king in check, ask the user to specify which of these pieces they'd like to move.
+9. If multiple pieces match the input, can legally make the move, have a clear path, and do not leave the king in check, ask the user to specify which of these pieces they'd like to move.
 
-9. Move the piece. Remove the taken piece if applicable.
+10. Move the piece. Remove the taken piece if applicable.
 
-10. Repeat steps 2-10 until checkmate is achieved.
+11. Repeat steps 2-10 until checkmate is achieved.
 
 The motivation behind this program is to eventually use it to control a physical chess board which controls the movement of pieces
 for the players based on some kind of computer input (whether that is typing, talking or some other form). Hopefully, this could
