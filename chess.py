@@ -274,10 +274,16 @@ class game(object):
         return False
 
     def checkmate(self, turn):
+        if turn % 2 == 1:
+            pieces = self.w_pcs
+            opposing = self.b_pcs
+        else:
+            pieces = self.b_pcs
+            opposing = self.w_pcs
         need_list = True
         attacker = self.check(turn, need_list)
         if attacker:
-            print('check')
+            attacker = opposing[attacker[0]]
         return False
 
     def check_occupation(self, move, turn):
@@ -547,17 +553,17 @@ class game(object):
         if turn % 2 == 1:
             x = self.w_pcs[0].x
             y = self.w_pcs[0].y
-            pieces = self.b_pcs
+            pieces = [(index, piece) for index, piece in enumerate(self.b_pcs) if piece.active and piece.type.lower() not in ['k', 'p']]
         else:
             x = self.b_pcs[0].x
             y = self.b_pcs[0].y
-            pieces = self.w_pcs
+            pieces = [(index, piece) for index, piece in enumerate(self.w_pcs) if piece.active and piece.type.lower() not in ['k', 'p']]
         turn += 1
         return self.any_piece_move_legal(turn, pieces, x, y, need_list)
 
     def any_piece_move_legal(self, turn, pieces, x, y, need_list=False):
         options = []
-        for piece_index, piece in enumerate(pieces):
+        for piece_index, piece in pieces:
             if piece.legal(x, y):
                 move = 'P' + self.get_space_from_pos(x, y)
                 if self.check_path([piece_index], move, turn)[0]:
@@ -628,9 +634,11 @@ class game(object):
 
     def draw(self, screen):
         for piece in self.w_pcs:
-            screen.blit(w_imgs[piece.type.lower()], (piece.x*BLOCK, (9-piece.y)*BLOCK))
+            if piece.active:
+                screen.blit(w_imgs[piece.type.lower()], (piece.x*BLOCK, (9-piece.y)*BLOCK))
         for piece in self.b_pcs:
-            screen.blit(b_imgs[piece.type.lower()], (piece.x*BLOCK, (9-piece.y)*BLOCK))
+            if piece.active:
+                screen.blit(b_imgs[piece.type.lower()], (piece.x*BLOCK, (9-piece.y)*BLOCK))
 
     def reset(self):
         self.__init__()
@@ -713,9 +721,8 @@ def main():
         Game.move_piece(piece_index, move, turn, taking)
         """ need to handle checkmate
             need to add good commenting
-            need to add good funcs for troubleshooting code
             need to make functions more modular so as to not edit good code too much (check path)
-            need to fix multiple_legals because doesn't account for clearPath or check after move
+            need to add undo option
         """
 
         turn += 1
