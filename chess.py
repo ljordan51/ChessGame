@@ -284,7 +284,68 @@ class game(object):
         attacker = self.check(turn, need_list)
         if attacker:
             attacker = opposing[attacker[0]]
+            kx, ky = pieces[0].x, pieces[0].y
+            ax, ay = attacker.x, attacker.y
+            spaces = self.get_indices_between_spaces(kx, ky, ax, ay)
+            pieces = [(index, piece) for index, piece in enumerate(pieces) if piece.active]
+            moves = []
+            for x, y in spaces:
+                if x == ax and y == ay:
+                    taking = True
+                else:
+                    taking = False
+                options = self.any_piece_move_legal(turn, pieces, x, y, need_list=True, taking=taking)
+                if options:
+                    moves.append((options, x, y))
+            no_moves = True
+            for piece_indices, x, y in moves:
+                if x == ax and y == ay:
+                    taking = True
+                else:
+                    taking = False
+                move = 'P' + self.get_space_from_pos(x, y)
+                ans = self.check_after_move(piece_indices, move, turn, taking)
+                no_moves = no_moves and ans[0]
+            if no_moves:
+                king_moves = []
+                for i in range(3):
+                    king_moves.append((kx-1, ky+(i-1)))
+                    king_moves.append((kx, ky+(i-1)))
+                    king_moves.append((kx+1, ky+(i-1)))
+                king_moves_filt = []
+                for move in king_moves:
+                    if move != (kx, ky) and str(move[0]) in ROWS and str(move[1]) in ROWS:
+                        king_moves_filt.append(move)
+                no_moves = True
+                for king_move in king_moves_filt:
+                    move = 'K' + self.get_space_from_pos(king_move[0], king_move[1])
+                    if self.check_occupation(move, turn) == 'empty':
+                        ans = self.check_after_move([0], move, turn, taking=False)
+                        no_moves = no_moves and ans[0]
+                if no_moves:
+                    return True
         return False
+
+    def get_indices_between_spaces(self, x1, y1, x2, y2):
+        spaces = []
+        xdif = x1-x2
+        ydif = y1-y2
+        if xdif == 0:
+            yfact = ydif/abs(ydif)
+            for i in range(abs(ydif)):
+                spaces.append((int(x2), int(y2+yfact*i)))
+        elif ydif == 0:
+            xfact = xdif/abs(xdif)
+            for i in range(abs(xdif)):
+                spaces.append((int(x2+xfact*i), int(y2)))
+        elif abs(xdif) == abs(ydif):
+            xfact = xdif/abs(xdif)
+            yfact = ydif/abs(ydif)
+            for i in range(abs(ydif)):
+                spaces.append((int(x2+xfact*i), int(y2+yfact*i)))
+        else:
+            spaces.append((x2, y2))
+        return spaces
 
     def check_occupation(self, move, turn):
         """
@@ -561,10 +622,10 @@ class game(object):
         turn += 1
         return self.any_piece_move_legal(turn, pieces, x, y, need_list)
 
-    def any_piece_move_legal(self, turn, pieces, x, y, need_list=False):
+    def any_piece_move_legal(self, turn, pieces, x, y, need_list=False, taking=False):
         options = []
         for piece_index, piece in pieces:
-            if piece.legal(x, y):
+            if piece.legal(x, y, taking):
                 move = 'P' + self.get_space_from_pos(x, y)
                 if self.check_path([piece_index], move, turn)[0]:
                     if need_list:
@@ -719,8 +780,7 @@ def main():
             continue
 
         Game.move_piece(piece_index, move, turn, taking)
-        """ need to handle checkmate
-            need to add good commenting
+        """ need to add good commenting
             need to make functions more modular so as to not edit good code too much (check path)
             need to add undo option
         """
