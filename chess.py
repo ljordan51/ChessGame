@@ -274,6 +274,10 @@ class game(object):
         return False
 
     def checkmate(self, turn):
+        need_list = True
+        attacker = self.check(turn, need_list)
+        if attacker:
+            print('check')
         return False
 
     def check_occupation(self, move, turn):
@@ -323,7 +327,7 @@ class game(object):
                     if self.check(turn):
                         result = [False]
                     else:
-                        result = [True, 6]
+                        result = [True, [6]]
                     pieces[0].x = E
         elif move == '0-0':
             king = pieces[0]
@@ -338,7 +342,7 @@ class game(object):
                     if self.check(turn):
                         result = [False]
                     else:
-                        result = [True, 7]
+                        result = [True, [7]]
                     pieces[0].x = E
         else:
             legals = []
@@ -352,11 +356,8 @@ class game(object):
                     indices.append(index)
             if len(legals) == 0:
                 result = [False]
-            elif len(legals) == 1:
-                result = [True, indices[0]]
             else:
-                index = self.multiple_legals(legals, indices)
-                result = [True, index]
+                result = [True, indices]
         return result
 
     def multiple_legals(self, legals, indices):
@@ -408,7 +409,7 @@ class game(object):
         space = space + str(y)
         return space
 
-    def check_path(self, piece_index, move, turn):
+    def check_path(self, piece_indices, move, turn):
         if turn % 2 == 1:
             pieces = self.w_pcs
             row = '1'
@@ -418,48 +419,60 @@ class game(object):
         if '0-0' in move:
             move = 'RE' + row
         pos = self.get_pos_from_move(move)
-        piece = pieces[piece_index]
-        xdif = pos[0] - piece.x
-        ydif = pos[1] - piece.y
-        p_type = piece.type.lower()
-        if p_type == 'k':
-            return True
-        elif p_type == 'q':
-            if xdif == 0:
-                for i in range(1, abs(ydif)):
+        options = []
+        for piece_index in piece_indices:
+            valid_option = True
+            piece = pieces[piece_index]
+            xdif = pos[0] - piece.x
+            ydif = pos[1] - piece.y
+            p_type = piece.type.lower()
+            if p_type == 'k':
+                options.append(piece_index)
+            elif p_type == 'q':
+                if xdif == 0:
+                    for i in range(1, abs(ydif)):
                         if self.check_space(piece.x, piece.y + i*(ydif/abs(ydif)), 'Q', turn):
-                            return False
-            elif ydif == 0:
-                for i in range(1, abs(xdif)):
+                            valid_option = False
+                elif ydif == 0:
+                    for i in range(1, abs(xdif)):
                         if self.check_space(piece.x + i*(xdif/abs(xdif)), piece.y, 'Q', turn):
-                            return False
-            else:
+                            valid_option = False
+                else:
+                    for i in range(1, abs(ydif)):
+                        if self.check_space(piece.x + i*(xdif/abs(xdif)), piece.y + i*(ydif/abs(ydif)), 'Q', turn):
+                            valid_option = False
+                if valid_option:
+                    options.append(piece_index)
+            elif p_type == 'b':
                 for i in range(1, abs(ydif)):
-                    if self.check_space(piece.x + i*(xdif/abs(xdif)), piece.y + i*(ydif/abs(ydif)), 'Q', turn):
-                        return False
-            return True
-        elif p_type == 'b':
-            for i in range(1, abs(ydif)):
-                if self.check_space(piece.x + i*(xdif/abs(xdif)), piece.y + i*(ydif/abs(ydif)), 'B', turn):
-                    return False
-            return True
-        elif p_type == 'n':
-            return True
-        elif p_type == 'r':
-            if xdif == 0:
-                for i in range(1, abs(ydif)):
-                    if self.check_space(piece.x, piece.y + i*(ydif/abs(ydif)), 'R', turn):
-                        return False
+                    if self.check_space(piece.x + i*(xdif/abs(xdif)), piece.y + i*(ydif/abs(ydif)), 'B', turn):
+                        valid_option = False
+                if valid_option:
+                    options.append(piece_index)
+            elif p_type == 'n':
+                options.append(piece_index)
+            elif p_type == 'r':
+                if xdif == 0:
+                    for i in range(1, abs(ydif)):
+                        if self.check_space(piece.x, piece.y + i*(ydif/abs(ydif)), 'R', turn):
+                            valid_option = False
+                else:
+                    for i in range(1, abs(xdif)):
+                        if self.check_space(piece.x + i*(xdif/abs(xdif)), piece.y, 'R', turn):
+                            valid_option = False
+                if valid_option:
+                    options.append(piece_index)
             else:
-                for i in range(1, abs(xdif)):
-                    if self.check_space(piece.x + i*(xdif/abs(xdif)), piece.y, 'R', turn):
-                        return False
-            return True
+                if (not piece.moved) and (move[2] == '4' or move[2] == '5'):
+                    if self.check_space(piece.x, piece.y + ydif/2, 'P', turn):
+                        valid_option = False
+                if valid_option:
+                    options.append(piece_index)
+        if len(options) == 0:
+            result = [False]
         else:
-            if (not piece.moved) and (move[2] == '4' or move[2] == '5'):
-                if self.check_space(piece.x, piece.y + ydif/2, 'P', turn):
-                    return False
-            return True
+            result = [True, options]
+        return result
 
     def check_space(self, x, y, piece_type, turn):
         """ Helper func for check_path to reduce copied and pasted code.
@@ -471,52 +484,66 @@ class game(object):
             return True
         return False
 
-    def check_after_move(self, piece_index, move, turn, taking):
-        if turn % 2 == 1:
-            piece = self.w_pcs[piece_index]
-            opposing = self.b_pcs
-        else:
-            piece = self.b_pcs[piece_index]
-            opposing = self.w_pcs
-        if taking:
-            pos = self.get_pos_from_move(move)
-            for enemy_index, enemy in enumerate(opposing):
-                if enemy.x == pos[0] and enemy.y == pos[1]:
-                    tx, ty, tactive, tmoved = enemy.x, enemy.y, enemy.active, enemy.moved
-                    taken_index = enemy_index
-        px, py, pmoved = piece.x, piece.y, piece.moved
-        self.move_piece(piece_index, move, turn, taking)
-        res = self.check(turn)
-        if turn % 2 == 1:
-            self.w_pcs[piece_index].x = px
-            self.w_pcs[piece_index].y = py
-            self.w_pcs[piece_index].moved = pmoved
-            if taking:
-                self.b_pcs[taken_index].x = tx
-                self.b_pcs[taken_index].y = ty
-                self.b_pcs[taken_index].active = tactive
-                self.b_pcs[taken_index].moved = tmoved
-        else:
-            self.b_pcs[piece_index].x = px
-            self.b_pcs[piece_index].y = py
-            self.b_pcs[piece_index].moved = pmoved
-            if taking:
-                self.w_pcs[taken_index].x = tx
-                self.w_pcs[taken_index].y = ty
-                self.w_pcs[taken_index].active = tactive
-                self.w_pcs[taken_index].moved = tmoved
-        if '0-0' in move:
+    def check_after_move(self, piece_indices, move, turn, taking):
+        indices = []
+        pieces = []
+        for piece_index in piece_indices:
             if turn % 2 == 1:
-                self.w_pcs[0].x = E
-                self.w_pcs[0].y = 1
-                self.w_pcs[0].moved = False
+                piece = self.w_pcs[piece_index]
+                opposing = self.b_pcs
             else:
-                self.b_pcs[0].x = E
-                self.b_pcs[0].y = 8
-                self.b_pcs[0].moved = False
-        return res
+                piece = self.b_pcs[piece_index]
+                opposing = self.w_pcs
+            if taking:
+                pos = self.get_pos_from_move(move)
+                for enemy_index, enemy in enumerate(opposing):
+                    if enemy.x == pos[0] and enemy.y == pos[1]:
+                        tx, ty, tactive, tmoved = enemy.x, enemy.y, enemy.active, enemy.moved
+                        taken_index = enemy_index
+            px, py, pmoved = piece.x, piece.y, piece.moved
+            self.move_piece(piece_index, move, turn, taking)
+            res = self.check(turn)
+            if turn % 2 == 1:
+                self.w_pcs[piece_index].x = px
+                self.w_pcs[piece_index].y = py
+                self.w_pcs[piece_index].moved = pmoved
+                piece = self.w_pcs[piece_index]
+                if taking:
+                    self.b_pcs[taken_index].x = tx
+                    self.b_pcs[taken_index].y = ty
+                    self.b_pcs[taken_index].active = tactive
+                    self.b_pcs[taken_index].moved = tmoved
+            else:
+                self.b_pcs[piece_index].x = px
+                self.b_pcs[piece_index].y = py
+                self.b_pcs[piece_index].moved = pmoved
+                piece = self.b_pcs[piece_index]
+                if taking:
+                    self.w_pcs[taken_index].x = tx
+                    self.w_pcs[taken_index].y = ty
+                    self.w_pcs[taken_index].active = tactive
+                    self.w_pcs[taken_index].moved = tmoved
+            if '0-0' in move:
+                if turn % 2 == 1:
+                    self.w_pcs[0].x = E
+                    self.w_pcs[0].y = 1
+                    self.w_pcs[0].moved = False
+                else:
+                    self.b_pcs[0].x = E
+                    self.b_pcs[0].y = 8
+                    self.b_pcs[0].moved = False
+            if not res:
+                pieces.append(piece)
+                indices.append(piece_index)
+        if len(pieces) == 0:
+            return [True]
+        elif len(pieces) == 1:
+            return [False, indices[0]]
+        else:
+            index = self.multiple_legals(pieces, indices)
+            return [False, index]
 
-    def check(self, turn):
+    def check(self, turn, need_list=False):
         if turn % 2 == 1:
             x = self.w_pcs[0].x
             y = self.w_pcs[0].y
@@ -526,11 +553,20 @@ class game(object):
             y = self.b_pcs[0].y
             pieces = self.w_pcs
         turn += 1
+        return self.any_piece_move_legal(turn, pieces, x, y, need_list)
+
+    def any_piece_move_legal(self, turn, pieces, x, y, need_list=False):
+        options = []
         for piece_index, piece in enumerate(pieces):
             if piece.legal(x, y):
                 move = 'P' + self.get_space_from_pos(x, y)
-                if self.check_path(piece_index, move, turn):
-                    return True
+                if self.check_path([piece_index], move, turn)[0]:
+                    if need_list:
+                        options.append(piece_index)
+                    else:
+                        return True
+        if need_list:
+            return options
         return False
 
     def move_piece(self, piece_index, move, turn, taking):
@@ -650,7 +686,21 @@ def main():
             print('Your move is illegal. Try again.')
             continue
 
-        piece_index = legality_and_piece[1]
+        piece_indices = legality_and_piece[1]
+
+        clearPath = Game.check_path(piece_indices, move, turn)
+        if not clearPath[0]:
+            print('There is at least one piece blocking your path. Try again.')
+            continue
+
+        piece_indices = clearPath[1]
+
+        check = Game.check_after_move(piece_indices, move, turn, taking)
+        if check[0]:
+            print('That move leaves your king in check. Try again.')
+            continue
+
+        piece_index = check[1]
         if piece_index == 'quit':
             playing = False
             running = False
@@ -658,16 +708,6 @@ def main():
         if piece_index == 'reset':
             Game.reset()
             turn = 1
-            continue
-
-        clearPath = Game.check_path(piece_index, move, turn)
-        if not clearPath:
-            print('There is at least one piece blocking your path. Try again.')
-            continue
-
-        check = Game.check_after_move(piece_index, move, turn, taking)
-        if check:
-            print('That move leaves your king in check. Try again.')
             continue
 
         Game.move_piece(piece_index, move, turn, taking)
