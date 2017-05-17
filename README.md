@@ -1,29 +1,45 @@
 Chess Game
-This program is intended to simulate a virtual chess game by initializing the spaces and pieces and keeping track of their
-movements across the board. The challenge of this game is ensuring that all moves are legal. The important tasks it
-must accomplish are listed below.
+An exercise in Python OOP
+DEPENDENCIES: pygame
 
-1. Initialize spaces and pieces. In this task it must create the piece objects and know their status (untaken at the beginning) as well as
-their location and type. For the space objects, it must know there location and occupation status.
+This program runs a virtual chess game by initializing the pieces and keeping track of their
+movements across the board. The challenge of this game is ensuring that all moves are legal.
+The important tasks it must accomplish are listed below. They form a basic summary of the main
+while loop that controls the program.
 
-2. Request user input (white first).
+1. Initialize a game containing an object for each piece on the board.
 
-3. Identify which piece is to be moved (if there are multiple of that type of piece on the board).
+2. Draw the board and pieces.
 
-4. Check the legality of the player's move based on the movement rules for each chess piece type.
+3. Confirm that the king is not in checkmate or otherwise end the game.
 
-5. Check that the path of the piece is clear based on the movement rules for each chess piece type.
+4. Get user input and confirm the input is valid or otherwise get new input.
 
-6. Check that the final destination is not obstructed by a piece of its own color.
+5. Check target space. If blocked, get new input. If empty or guarded, store that information.
 
-7. Check if the final destination contains a piece of the opposite color, in which case it must identify the move as a taking move.
+4. Find all pieces which match the move input and can legally carry out the move. If none are found, get new input.
 
-8. Check to make sure the move doesn't violate any laws of checking the king.
+5. Of the legal pieces which match the input, find all pieces whose paths are clear based on the movement rules for each chess piece type. If none are found, get new input.
 
-9. Move the piece. Change the piece's location, change the old space to unoccupied, and change the new space to occupied.
-*In the case of a taking move, it must keep the new space as occupied and remove the taken piece and change its status to taken.
+6. Of the legal pieces which match the input with a clear path, find all pieces whose moves do not leave the king in check. If none are found, get new input.
 
-10. Check to see if check mate has been achieved and terminate the game if so.
+8. If multiple pieces match the input, can legally make the move, have a clear path, and do not leave the king in check, ask the user to specify which of these pieces they'd like to move.
+
+9. Move the piece. Remove the taken piece if applicable.
+
+10. Repeat steps 2-10 until checkmate is achieved.
 
 The motivation behind this program is to eventually use it to control a physical chess board which controls the movement of pieces
-for the players based on some kind of computer input (whether that is typing, talking or some other form).
+for the players based on some kind of computer input (whether that is typing, talking or some other form). Hopefully, this could
+eventually become a set of two remote chess boards, such that players could play physical chess games with anybody, anywhere.
+
+Additional features:
+quit - quits the game and closes the pygame window
+reset - resets the game
+testing - removes all white pawns and all black pieces other than the king and queen in order to test certain functions more easily
+help - prints examples of valid user input
+
+Artwork obtained from https://commons.wikimedia.org/wiki/File:AAA_SVG_Chessboard_and_chess_pieces_06.svg but edited/formatted
+in adobe illustrator by myself in order to work properly for this game and improve overall aesthetics.
+
+Project was originally started in Java but after taking an introduction to software design course in Python, I switched over.

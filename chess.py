@@ -1,3 +1,8 @@
+""" ChessGame
+    Author: Lakhvinder "Lucky" Jordan
+    Date: 5/17/2017
+"""
+
 import pygame
 
 BLOCK = 100
@@ -656,12 +661,12 @@ def main():
         else:
             taking = False
 
-        legality_and_piece = Game.check_legality(move, turn, taking)
-        if not legality_and_piece[0]:
+        legal = Game.check_legality(move, turn, taking)
+        if not legal[0]:
             print('Your move is illegal. Try again.')
             continue
 
-        piece_indices = legality_and_piece[1]
+        piece_indices = legal[1]
 
         clearPath = Game.check_path(piece_indices, move, turn)
         if not clearPath[0]:
