@@ -193,8 +193,12 @@ class game(object):
             q = "White, what is your move?"
         else:
             q = "Black, what is your move?"
+        count = 1
         wrong = True
         while wrong:
+            if count == 4:
+                print('Type help to see examples of inputs.')
+            count += 1
             move = input(q).upper()
             if move == 'QUIT':
                 return move
@@ -482,54 +486,11 @@ class game(object):
         for piece_index in piece_indices:
             if turn % 2 == 1:
                 piece = self.w_pcs[piece_index]
-                opposing = self.b_pcs
             else:
                 piece = self.b_pcs[piece_index]
-                opposing = self.w_pcs
-            if taking:
-                pos = self.get_pos_from_move(move)
-                for enemy_index, enemy in enumerate(opposing):
-                    if enemy.x == pos[0] and enemy.y == pos[1]:
-                        tx, ty, tactive, tmoved = enemy.x, enemy.y, enemy.active, enemy.moved
-                        taken_index = enemy_index
-            px, py, pmoved = piece.x, piece.y, piece.moved
-            self.move_piece(piece_index, move, turn, taking)
+            last_move = self.move_piece(piece_index, move, turn, taking)
             res = self.check(turn)
-            if turn % 2 == 1:
-                self.w_pcs[piece_index].x = px
-                self.w_pcs[piece_index].y = py
-                self.w_pcs[piece_index].moved = pmoved
-                piece = self.w_pcs[piece_index]
-                if move[0] == 'P' and move[2] == '8':
-                    self.w_pcs.pop()
-                    self.w_pcs[piece_index].active = True
-                if taking:
-                    self.b_pcs[taken_index].x = tx
-                    self.b_pcs[taken_index].y = ty
-                    self.b_pcs[taken_index].active = tactive
-                    self.b_pcs[taken_index].moved = tmoved
-            else:
-                self.b_pcs[piece_index].x = px
-                self.b_pcs[piece_index].y = py
-                self.b_pcs[piece_index].moved = pmoved
-                piece = self.b_pcs[piece_index]
-                if move[0] == 'P' and move[2] == '1':
-                    self.b_pcs.pop()
-                    self.b_pcs[piece_index].active = True
-                if taking:
-                    self.w_pcs[taken_index].x = tx
-                    self.w_pcs[taken_index].y = ty
-                    self.w_pcs[taken_index].active = tactive
-                    self.w_pcs[taken_index].moved = tmoved
-            if '0-0' in move:
-                if turn % 2 == 1:
-                    self.w_pcs[0].x = E
-                    self.w_pcs[0].y = 1
-                    self.w_pcs[0].moved = False
-                else:
-                    self.b_pcs[0].x = E
-                    self.b_pcs[0].y = 8
-                    self.b_pcs[0].moved = False
+            self.undo(last_move)
             if not res:
                 pieces.append(piece)
                 indices.append(piece_index)
@@ -768,9 +729,7 @@ def main():
             continue
 
         last_move = Game.move_piece(piece_index, move, turn, taking)
-        """ add undo to check after move
-            add help prompt after 3 bad inputs
-            think about castling with all other funcs, mainly is both castling options are available
+        """ think about castling with all other funcs, mainly if both castling options are available
             multiple undos
         """
 
