@@ -198,11 +198,13 @@ class game(object):
             move = input(q)
             if move.lower() == 'quit':
                 return move.lower()
-            if move.lower() == 'reset':
+            elif move.lower() == 'reset':
                 return move.lower()
-            if move.lower() == 'testing':
+            elif move.lower() == 'testing':
                 return move.lower()
-            if move.lower() == 'help':
+            elif move.lower() == 'undo':
+                return move.lower()
+            elif move.lower() == 'help':
                 self.print_opts()
                 continue
             wrong = not self.check_input(move)
@@ -497,6 +499,9 @@ class game(object):
                 self.w_pcs[piece_index].y = py
                 self.w_pcs[piece_index].moved = pmoved
                 piece = self.w_pcs[piece_index]
+                if move[0].lower() == 'p' and move[2] == '8':
+                    self.w_pcs.pop()
+                    self.w_pcs[piece_index].active = True
                 if taking:
                     self.b_pcs[taken_index].x = tx
                     self.b_pcs[taken_index].y = ty
@@ -507,6 +512,9 @@ class game(object):
                 self.b_pcs[piece_index].y = py
                 self.b_pcs[piece_index].moved = pmoved
                 piece = self.b_pcs[piece_index]
+                if move[0].lower() == 'p' and move[2] == '1':
+                    self.b_pcs.pop()
+                    self.b_pcs[piece_index].active = True
                 if taking:
                     self.w_pcs[taken_index].x = tx
                     self.w_pcs[taken_index].y = ty
@@ -559,29 +567,37 @@ class game(object):
         return False
 
     def move_piece(self, piece_index, move, turn, taking):
+        piece_info = []
+        taken_info = []
         if '0-0' in move:
             self.castling(piece_index, move, turn)
         else:
             pos = self.get_pos_from_move(move)
             if taking:
                 if turn % 2 == 1:
-                    for piece in self.b_pcs:
+                    for index, piece in enumerate(self.b_pcs):
                         if piece.x == pos[0] and piece.y == pos[1]:
+                            taken_info = [index, piece.x, piece.y]
                             piece.taken()
                 else:
-                    for piece in self.w_pcs:
+                    for index, piece in enumerate(self.w_pcs):
                         if piece.x == pos[0] and piece.y == pos[1]:
+                            taken_info = [index, piece.x, piece.y]
                             piece.taken()
             if turn % 2 == 1:
+                piece_info = [self.w_pcs[piece_index].x, self.w_pcs[piece_index].y, self.w_pcs[piece_index].moved]
                 self.w_pcs[piece_index].move(pos[0], pos[1])
                 if self.w_pcs[piece_index].type.lower() == 'p' and pos[1] == 8:
                     self.w_pcs.append(queen(pos[0], pos[1]))
                     self.w_pcs[piece_index].taken()
             else:
+                piece_info = [self.b_pcs[piece_index].x, self.b_pcs[piece_index].y, self.b_pcs[piece_index].moved]
                 self.b_pcs[piece_index].move(pos[0], pos[1])
                 if self.b_pcs[piece_index].type.lower() == 'p' and pos[1] == 1:
                     self.b_pcs.append(queen(pos[0], pos[1]))
                     self.b_pcs[piece_index].taken()
+        last_move = [piece_index, move, turn, taking, piece_info, taken_info]
+        return last_move
 
     def castling(self, piece_index, move, turn):
         if turn % 2 == 1:
@@ -606,6 +622,39 @@ class game(object):
         y = int(move[2])
         return [x, y]
 
+    def undo(self, last_move):
+        pi, move, turn, taking, piece_info, taken_info = last_move
+        if turn % 2 == 1:
+            if move == '0-0':
+                self.w_pcs[0].x, self.w_pcs[0].y, self.w_pcs[0].moved = E, 1, False
+                self.w_pcs[pi].x, self.w_pcs[pi].y, self.w_pcs[pi].moved = H, 1, False
+            elif move == '0-0-0':
+                self.w_pcs[0].x, self.w_pcs[0].y, self.w_pcs[0].moved = E, 1, False
+                self.w_pcs[pi].x, self.w_pcs[pi].y, self.w_pcs[pi].moved = A, 1, False
+            elif move[0].lower() == 'p' and move[2] == '8':
+                self.w_pcs.pop()
+                self.w_pcs[pi].x, self.w_pcs[pi].y, self.w_pcs[pi].active = piece_info[0], piece_info[1], True
+            else:
+                self.w_pcs[pi].x, self.w_pcs[pi].y, self.w_pcs[pi].moved = piece_info
+            if taking:
+                ti = taken_info[0]
+                self.b_pcs[ti].x, self.b_pcs[ti].y, self.b_pcs[ti].active = taken_info[1], taken_info[2], True
+        else:
+            if move == '0-0':
+                self.b_pcs[0].x, self.b_pcs[0].y, self.b_pcs[0].moved = E, 8, False
+                self.b_pcs[pi].x, self.b_pcs[pi].y, self.b_pcs[pi].moved = H, 8, False
+            elif move == '0-0-0':
+                self.b_pcs[0].x, self.b_pcs[0].y, self.b_pcs[0].moved = E, 8, False
+                self.b_pcs[pi].x, self.b_pcs[pi].y, self.b_pcs[pi].moved = A, 8, False
+            elif move[0].lower() == 'p' and move[2] == '1':
+                self.b_pcs.pop()
+                self.b_pcs[pi].x, self.b_pcs[pi].y, self.b_pcs[pi].active = piece_info[0], piece_info[1], True
+            else:
+                self.b_pcs[pi].x, self.b_pcs[pi].y, self.b_pcs[pi].moved = piece_info
+            if taking:
+                ti = taken_info[0]
+                self.w_pcs[ti].x, self.w_pcs[ti].y, self.w_pcs[ti].active = taken_info[1], taken_info[2], True
+
     def draw(self, screen):
         for piece in self.w_pcs:
             if piece.active:
@@ -619,12 +668,12 @@ class game(object):
 
 
 def main():
-    print('Welcome to CHESS! by Lucky Jordan.\nType help for examples of commands.\nType quit to quit.\nType reset to reset the board.')
+    print('Welcome to CHESS! by Lucky Jordan.\nType help for examples of commands.\nType quit to quit.\nType reset to reset the board.\nType undo to undo the last move.')
     Game = game()
     turn = 1
 
+    last_move = []
     running = True
-    playing = True
     while running:
         screen.blit(BOARD, (0, 0))
         Game.draw(screen)
@@ -656,11 +705,18 @@ def main():
         if move == 'quit':
             running = False
             continue
-        if move == 'reset':
+        elif move == 'reset':
             Game.reset()
             turn = 1
             continue
-        if move == 'testing':
+        elif move == 'undo':
+            if last_move:
+                Game.undo(last_move)
+                turn = turn - 1
+            else:
+                print('No move to undo.')
+            continue
+        elif move == 'testing':
             for piece in Game.w_pcs:
                 if piece.type.lower() == 'p':
                     piece.taken()
@@ -699,15 +755,14 @@ def main():
 
         piece_index = check[1]
         if piece_index == 'quit':
-            playing = False
             running = False
             continue
-        if piece_index == 'reset':
+        elif piece_index == 'reset':
             Game.reset()
             turn = 1
             continue
 
-        Game.move_piece(piece_index, move, turn, taking)
+        last_move = Game.move_piece(piece_index, move, turn, taking)
 
         turn += 1
 
