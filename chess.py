@@ -675,7 +675,8 @@ def main():
             continue
         elif move == 'UNDO':
             if last_move:
-                Game.undo(last_move)
+                Game.undo(last_move[-1])
+                last_move.pop()
                 turn = turn - 1
             else:
                 print('No move to undo.')
@@ -728,9 +729,9 @@ def main():
             turn = 1
             continue
 
-        last_move = Game.move_piece(piece_index, move, turn, taking)
+        this_move = Game.move_piece(piece_index, move, turn, taking)
+        last_move.append(this_move)
         """ think about castling with all other funcs, mainly if both castling options are available
-            multiple undos
         """
 
         turn += 1
