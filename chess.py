@@ -630,7 +630,8 @@ class game(object):
 
 
 def main():
-    print('Welcome to CHESS! by Lucky Jordan.\nType help for examples of commands.\nType quit to quit.\nType reset to reset the board.\nType undo to undo the last move.')
+    print('Welcome to CHESS! by Lucky Jordan.\nType help for examples of commands.\nType quit to quit.\n' +
+          'Type reset to reset the board.\nType undo to undo the last move.')
     Game = game()
     turn = 1
 
