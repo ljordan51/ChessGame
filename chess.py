@@ -6,28 +6,26 @@
 import pygame
 import os
 
-BLOCK = 100
-WINDOW = BLOCK*9
-A = 1
-B = 2
-C = 3
-D = 4
-E = 5
-F = 6
-G = 7
-H = 8
-ROWS = '12345678'
-COLS = 'ABCDEFGH'
+""" setting up some global variables to make reading code easier
+    and checking input simple
+"""
+BLOCK = 100  # size of one space (px)
+WINDOW = BLOCK*9  # size of board (px)
+A, B, C, D, E, F, G, H = 1, 2, 3, 4, 5, 6, 7, 8  # index integer value of lettered spaces
+ROWS = '12345678'  # acceptable row inputs
+COLS = 'ABCDEFGH'  # acceptable column inputs
 
+""" initialize pygame and set screen and background image """
 pygame.init()
 screen = pygame.display.set_mode((WINDOW, WINDOW))  # initialize and display window
+BOARD = pygame.image.load('chess_board.png').convert_alpha()  # set background image to chess board
 
-BOARD = pygame.image.load('chess_board.png').convert_alpha()
+""" creating dictionaries of image files to draw on screen depending on piece type and color """
 w_imgs = {}
 b_imgs = {}
 im_files = ['wk', 'wq', 'wb', 'wn', 'wr', 'wp', 'bk', 'bq', 'bb', 'bn', 'br', 'bp']
 for filename in im_files:
-    path = os.path.join("pieces", filename + '.png')
+    path = os.path.join("pieces", filename + '.png')  # images are in pieces folder
     img = pygame.image.load(path).convert_alpha()
     if filename[0] == 'w':
         w_imgs[filename[1]] = img
@@ -36,6 +34,13 @@ for filename in im_files:
 
 
 class piece(object):
+    """ The super class for all piece types.
+        x = x position on board, each space is assigned an x,y position e.g. A1 is 1,1
+        y = y position on board
+        col = color, 1 for white, 2 for black
+        active = True if piece is on board, False if it has been removed or taken
+        moved = True if pieces has been moved, False if not (used for pawn first move and castling)
+    """
     def __init__(self, x, y, col=1):
         self.x = x
         self.y = y
@@ -53,20 +58,24 @@ class piece(object):
         self.y = 0
         self.active = False
 
-    def legal(self, new_x, new_y, taking=True):
+    def legal(self, new_x, new_y, taking=False):
         return True
 
 
 class king(piece):
+    """ each class has a string assigned to type in order to determine its type in other functions
+        each class inherits from piece and uses the super() call to initialize all attributes except type
+        legal methods do not include castling (handle in Game class functions) because multiple pieces move
+    """
     def __init__(self, x, y, col=1):
         self.type = 'K'
         super().__init__(x, y, col)
 
-    def legal(self, new_x, new_y, taking=True):
-        if new_x == self.x and new_y == self.y:
-            return False
+    def legal(self, new_x, new_y, taking=False):
+        # king can move in any direction so abs val of move is taken
         xdif = abs(new_x-self.x)
         ydif = abs(new_y-self.y)
+        # return false only if either direction is moving more than 1 space
         if not (xdif <= 1 and ydif <= 1):
             return False
         return True
@@ -77,11 +86,11 @@ class queen(piece):
         self.type = 'Q'
         super().__init__(x, y, col)
 
-    def legal(self, new_x, new_y, taking=True):
-        if new_x == self.x and new_y == self.y:
-            return False
+    def legal(self, new_x, new_y, taking=False):
+        # queen can move in any direction so abs val of move is taken
         xdif = abs(new_x-self.x)
         ydif = abs(new_y-self.y)
+        # queen is legal if move is diagonal or straight, hence the 3 cases
         if not (xdif == ydif or xdif == 0 or ydif == 0):
             return False
         return True
@@ -92,11 +101,11 @@ class bishop(piece):
         self.type = 'B'
         super().__init__(x, y, col)
 
-    def legal(self, new_x, new_y, taking=True):
-        if new_x == self.x and new_y == self.y:
-            return False
+    def legal(self, new_x, new_y, taking=False):
+        # bishop can move in any direction so abs val of move is taken
         xdif = abs(new_x-self.x)
         ydif = abs(new_y-self.y)
+        # bishop can only move diagonally
         if not xdif == ydif:
             return False
         return True
@@ -104,12 +113,14 @@ class bishop(piece):
 
 class knight(piece):
     def __init__(self, x, y, col=1):
-        self.type = 'N'
+        self.type = 'N'  # type is "N" so as not to be confused with king
         super().__init__(x, y, col)
 
-    def legal(self, new_x, new_y, taking=True):
+    def legal(self, new_x, new_y, taking=False):
+        # knight can move in any direction so abs val of move is taken
         xdif = abs(new_x-self.x)
         ydif = abs(new_y-self.y)
+        # knight is legal if making l-shape, after abs val there are 2 scenarios
         if not ((xdif == 2 and ydif == 1) or (xdif == 1 and ydif == 2)):
             return False
         return True
@@ -120,11 +131,11 @@ class rook(piece):
         self.type = 'R'
         super().__init__(x, y, col)
 
-    def legal(self, new_x, new_y, taking=True):
-        if new_x == self.x and new_y == self.y:
-            return False
+    def legal(self, new_x, new_y, taking=False):
+        # rook can move in any direction so abs val of move is taken
         xdif = abs(new_x-self.x)
         ydif = abs(new_y-self.y)
+        # rook can only move straight
         if not (xdif == 0 or ydif == 0):
             return False
         return True
@@ -135,24 +146,38 @@ class pawn(piece):
         self.type = 'P'
         super().__init__(x, y, col)
 
-    def legal(self, new_x, new_y, taking=True):
+    def legal(self, new_x, new_y, taking=False):
+        # pawn can only move forward, fact equation maps color to direction (1 for white and -1 for black moving up and down the board respectively)
         fact = -2*self.col+3
+        # pawns move is directional, therefore no abs val
         xdif = new_x-self.x
         ydif = new_y-self.y
+        # on the pawn's first move, it can move forward two spaces if not taking a piece
         if (not taking) and (not self.moved) and xdif == 0 and ydif == 2*fact:
             return True
-        if taking:
-            if abs(xdif) == 1 and ydif == 1*fact:
+        elif taking:
+            # if the pawn is taking it can move diagonally either way 1 space
+            if abs(xdif) == 1 and ydif == fact:
                 return True
             else:
                 return False
-        if not (xdif == 0 and ydif == 1*fact):
+        # if not taking and not moving directly forward one space, move is illegal
+        elif not (xdif == 0 and ydif == fact):
             return False
         return True
 
 
 class game(object):
+    """ The game class initializes all the pieces and holds them in two separate lists by color.
+        It contains all the functions which control the game and handle getting and evaluating
+        user input. It's functions are called by the main loop in order to run the game.
+        Additionally it contains the draw function which draws the pieces on the board at the
+        start of each turn.
+    """
     def __init__(self):
+        """ initializes all pieces on correct space with correct color and type
+            adds these pieces to Game attributes w_pcs and b_pcs (lists of pieces by color)
+        """
         wk = king(E, 1)
         wq = queen(D, 1)
         wb1 = bishop(C, 1)
@@ -200,13 +225,7 @@ class game(object):
                 print('Type help to see examples of inputs.')
             count += 1
             move = input(q).upper()
-            if move == 'QUIT':
-                return move
-            elif move == 'RESET':
-                return move
-            elif move == 'TESTING':
-                return move
-            elif move == 'UNDO':
+            if move in ['QUIT', 'RESET', 'TESTING', 'UNDO']:
                 return move
             elif move == 'HELP':
                 self.print_opts()
