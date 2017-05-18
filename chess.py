@@ -195,7 +195,7 @@ class game(object):
             q = "Black, what is your move?"
         wrong = True
         while wrong:
-            move = input(q)
+            move = input(q).upper()
             if move.lower() == 'quit':
                 return move.lower()
             elif move.lower() == 'reset':
@@ -211,9 +211,10 @@ class game(object):
         return move
 
     def print_opts(self):
-        print('Input examples:' + '\n' + 'PE4 = pawn to E4' + '\n' + 'RE4 = rook to E4' + '\n' + 'NE4 = knight to E4'
-              + '\n' + 'BE4 = bishop to E4' + '\n' + 'QE4 = queen to E4' + '\n' + 'KE4 = king to E4' + '\n' +
-              '0-0-0 = queenside castle' + '\n' + '0-0 = kingside castle')
+        print('Input examples:\nPE4 = pawn to E4\nRE4 = rook to E4\nNE4 = knight to E4\n' +
+              'BE4 = bishop to E4\nQE4 = queen to E4\nKE4 = king to E4\n0-0-0 = queenside castle'
+              + '\n0-0 = kingside castle\nType quit to quit.\nType reset to reset the board.\n' +
+              'Type undo to undo the last move.\nInputs are NOT case sensitive.')
 
     def check_input(self, move):
         ones = 'PRNBQK'
@@ -382,7 +383,7 @@ class game(object):
             print(space)
         not_choice = True
         while not_choice:
-            space = input()
+            space = input().upper()
             if space.lower() == 'quit':
                 return space.lower()
             if space.lower() == 'reset':
@@ -689,7 +690,7 @@ def main():
             invalid = True
             while invalid:
                 q = "Would you like to play again? Y or N?"
-                reset = input(q)
+                reset = input(q).upper()
                 if reset.lower() in ['y', 'n']:
                     invalid = False
                 else:
@@ -763,6 +764,11 @@ def main():
             continue
 
         last_move = Game.move_piece(piece_index, move, turn, taking)
+        """ add undo to check after move
+            add help prompt after 3 bad inputs
+            think about castling with all other funcs, mainly is both castling options are available
+            multiple undos
+        """
 
         turn += 1
 
