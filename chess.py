@@ -731,8 +731,6 @@ def main():
 
         this_move = Game.move_piece(piece_index, move, turn, taking)
         last_move.append(this_move)
-        """ think about castling with all other funcs, mainly if both castling options are available
-        """
 
         turn += 1
 
