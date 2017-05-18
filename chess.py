@@ -196,15 +196,15 @@ class game(object):
         wrong = True
         while wrong:
             move = input(q).upper()
-            if move.lower() == 'quit':
-                return move.lower()
-            elif move.lower() == 'reset':
-                return move.lower()
-            elif move.lower() == 'testing':
-                return move.lower()
-            elif move.lower() == 'undo':
-                return move.lower()
-            elif move.lower() == 'help':
+            if move == 'QUIT':
+                return move
+            elif move == 'RESET':
+                return move
+            elif move == 'TESTING':
+                return move
+            elif move == 'UNDO':
+                return move
+            elif move == 'HELP':
                 self.print_opts()
                 continue
             wrong = not self.check_input(move)
@@ -362,8 +362,8 @@ class game(object):
             legals = []
             indices = []
             pos = self.get_pos_from_move(move)
-            l = move[0].lower()
-            potentials = [(index, piece) for index, piece in enumerate(pieces) if piece.type.lower() == l and piece.active]
+            l = move[0]
+            potentials = [(index, piece) for index, piece in enumerate(pieces) if piece.type == l and piece.active]
             for index, piece in potentials:
                 if piece.legal(pos[0], pos[1], taking):
                     legals.append(piece)
@@ -384,10 +384,10 @@ class game(object):
         not_choice = True
         while not_choice:
             space = input().upper()
-            if space.lower() == 'quit':
-                return space.lower()
-            if space.lower() == 'reset':
-                return space.lower()
+            if space == 'QUIT':
+                return space
+            if space == 'RESET':
+                return space
             if space in spaces:
                 not_choice = False
                 index = indices[spaces.index(space)]
@@ -417,10 +417,10 @@ class game(object):
             piece = pieces[piece_index]
             xdif = pos[0] - piece.x
             ydif = pos[1] - piece.y
-            p_type = piece.type.lower()
-            if p_type == 'k':
+            p_type = piece.type
+            if p_type == 'K':
                 options.append(piece_index)
-            elif p_type == 'q':
+            elif p_type == 'Q':
                 if xdif == 0:
                     for i in range(1, abs(ydif)):
                         if self.check_space(piece.x, piece.y + i*(ydif/abs(ydif)), 'Q', turn):
@@ -435,15 +435,15 @@ class game(object):
                             valid_option = False
                 if valid_option:
                     options.append(piece_index)
-            elif p_type == 'b':
+            elif p_type == 'B':
                 for i in range(1, abs(ydif)):
                     if self.check_space(piece.x + i*(xdif/abs(xdif)), piece.y + i*(ydif/abs(ydif)), 'B', turn):
                         valid_option = False
                 if valid_option:
                     options.append(piece_index)
-            elif p_type == 'n':
+            elif p_type == 'N':
                 options.append(piece_index)
-            elif p_type == 'r':
+            elif p_type == 'R':
                 if xdif == 0:
                     for i in range(1, abs(ydif)):
                         if self.check_space(piece.x, piece.y + i*(ydif/abs(ydif)), 'R', turn):
@@ -500,7 +500,7 @@ class game(object):
                 self.w_pcs[piece_index].y = py
                 self.w_pcs[piece_index].moved = pmoved
                 piece = self.w_pcs[piece_index]
-                if move[0].lower() == 'p' and move[2] == '8':
+                if move[0] == 'P' and move[2] == '8':
                     self.w_pcs.pop()
                     self.w_pcs[piece_index].active = True
                 if taking:
@@ -513,7 +513,7 @@ class game(object):
                 self.b_pcs[piece_index].y = py
                 self.b_pcs[piece_index].moved = pmoved
                 piece = self.b_pcs[piece_index]
-                if move[0].lower() == 'p' and move[2] == '1':
+                if move[0] == 'P' and move[2] == '1':
                     self.b_pcs.pop()
                     self.b_pcs[piece_index].active = True
                 if taking:
@@ -545,11 +545,11 @@ class game(object):
         if turn % 2 == 1:
             x = self.w_pcs[0].x
             y = self.w_pcs[0].y
-            pieces = [(index, piece) for index, piece in enumerate(self.b_pcs) if piece.active and piece.type.lower() not in ['k', 'p']]
+            pieces = [(index, piece) for index, piece in enumerate(self.b_pcs) if piece.active and piece.type not in ['K', 'P']]
         else:
             x = self.b_pcs[0].x
             y = self.b_pcs[0].y
-            pieces = [(index, piece) for index, piece in enumerate(self.w_pcs) if piece.active and piece.type.lower() not in ['k', 'p']]
+            pieces = [(index, piece) for index, piece in enumerate(self.w_pcs) if piece.active and piece.type not in ['K', 'P']]
         turn += 1
         return self.any_piece_move_legal(turn, pieces, x, y, need_list)
 
@@ -588,13 +588,13 @@ class game(object):
             if turn % 2 == 1:
                 piece_info = [self.w_pcs[piece_index].x, self.w_pcs[piece_index].y, self.w_pcs[piece_index].moved]
                 self.w_pcs[piece_index].move(pos[0], pos[1])
-                if self.w_pcs[piece_index].type.lower() == 'p' and pos[1] == 8:
+                if self.w_pcs[piece_index].type == 'P' and pos[1] == 8:
                     self.w_pcs.append(queen(pos[0], pos[1]))
                     self.w_pcs[piece_index].taken()
             else:
                 piece_info = [self.b_pcs[piece_index].x, self.b_pcs[piece_index].y, self.b_pcs[piece_index].moved]
                 self.b_pcs[piece_index].move(pos[0], pos[1])
-                if self.b_pcs[piece_index].type.lower() == 'p' and pos[1] == 1:
+                if self.b_pcs[piece_index].type == 'P' and pos[1] == 1:
                     self.b_pcs.append(queen(pos[0], pos[1]))
                     self.b_pcs[piece_index].taken()
         last_move = [piece_index, move, turn, taking, piece_info, taken_info]
@@ -632,7 +632,7 @@ class game(object):
             elif move == '0-0-0':
                 self.w_pcs[0].x, self.w_pcs[0].y, self.w_pcs[0].moved = E, 1, False
                 self.w_pcs[pi].x, self.w_pcs[pi].y, self.w_pcs[pi].moved = A, 1, False
-            elif move[0].lower() == 'p' and move[2] == '8':
+            elif move[0] == 'P' and move[2] == '8':
                 self.w_pcs.pop()
                 self.w_pcs[pi].x, self.w_pcs[pi].y, self.w_pcs[pi].active = piece_info[0], piece_info[1], True
             else:
@@ -647,7 +647,7 @@ class game(object):
             elif move == '0-0-0':
                 self.b_pcs[0].x, self.b_pcs[0].y, self.b_pcs[0].moved = E, 8, False
                 self.b_pcs[pi].x, self.b_pcs[pi].y, self.b_pcs[pi].moved = A, 8, False
-            elif move[0].lower() == 'p' and move[2] == '1':
+            elif move[0] == 'P' and move[2] == '1':
                 self.b_pcs.pop()
                 self.b_pcs[pi].x, self.b_pcs[pi].y, self.b_pcs[pi].active = piece_info[0], piece_info[1], True
             else:
@@ -691,39 +691,42 @@ def main():
             while invalid:
                 q = "Would you like to play again? Y or N?"
                 reset = input(q).upper()
-                if reset.lower() in ['y', 'n']:
+                if reset in ['Y', 'N']:
                     invalid = False
                 else:
                     print('Please enter Y or N.')
-            if reset.lower() == 'y':
+            if reset == 'Y':
                 Game.reset()
+                last_move = []
                 turn = 1
             else:
                 running = False
             continue
 
         move = Game.get_input(turn)
-        if move == 'quit':
+        if move == 'QUIT':
             running = False
             continue
-        elif move == 'reset':
+        elif move == 'RESET':
             Game.reset()
+            last_move = []
             turn = 1
             continue
-        elif move == 'undo':
+        elif move == 'UNDO':
             if last_move:
                 Game.undo(last_move)
                 turn = turn - 1
             else:
                 print('No move to undo.')
             continue
-        elif move == 'testing':
+        elif move == 'TESTING':
             for piece in Game.w_pcs:
-                if piece.type.lower() == 'p':
+                if piece.type == 'P':
                     piece.taken()
             for piece in Game.b_pcs:
-                if piece.type.lower() != 'k' and piece.type.lower() != 'q':
+                if piece.type not in ['K', 'Q']:
                     piece.taken()
+            last_move = []
             continue
 
         occupied = Game.check_occupation(move, turn)
@@ -755,11 +758,12 @@ def main():
             continue
 
         piece_index = check[1]
-        if piece_index == 'quit':
+        if piece_index == 'QUIT':
             running = False
             continue
-        elif piece_index == 'reset':
+        elif piece_index == 'RESET':
             Game.reset()
+            last_move = []
             turn = 1
             continue
 
