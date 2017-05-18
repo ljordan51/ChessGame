@@ -34,6 +34,7 @@ for the players based on some kind of computer input (whether that is typing, ta
 eventually become a set of two remote chess boards, such that players could play physical chess games with anybody, anywhere.
 
 Additional features:
+undo - undoes last move
 quit - quits the game and closes the pygame window
 reset - resets the game
 testing - removes all white pawns and all black pieces other than the king and queen in order to test certain functions more easily
