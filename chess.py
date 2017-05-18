@@ -4,6 +4,7 @@
 """
 
 import pygame
+import os
 
 BLOCK = 100
 WINDOW = BLOCK*9
@@ -26,7 +27,8 @@ w_imgs = {}
 b_imgs = {}
 im_files = ['wk', 'wq', 'wb', 'wn', 'wr', 'wp', 'bk', 'bq', 'bb', 'bn', 'br', 'bp']
 for filename in im_files:
-    img = pygame.image.load(filename + '.png').convert_alpha()
+    path = os.path.join("pieces", filename + '.png')
+    img = pygame.image.load(path).convert_alpha()
     if filename[0] == 'w':
         w_imgs[filename[1]] = img
     else:
@@ -631,12 +633,27 @@ def main():
         checkmate = Game.checkmate(turn)
         if checkmate:
             print('CHECKMATE!')
-            running = False
+            if turn % 2 == 1:
+                print("Black WINS!")
+            else:
+                print("White WINS!")
+            invalid = True
+            while invalid:
+                q = "Would you like to play again? Y or N?"
+                reset = input(q)
+                if reset.lower() in ['y', 'n']:
+                    invalid = False
+                else:
+                    print('Please enter Y or N.')
+            if reset.lower() == 'y':
+                Game.reset()
+                turn = 1
+            else:
+                running = False
             continue
 
         move = Game.get_input(turn)
         if move == 'quit':
-            playing = False
             running = False
             continue
         if move == 'reset':
@@ -693,12 +710,6 @@ def main():
         Game.move_piece(piece_index, move, turn, taking)
 
         turn += 1
-
-    if playing:
-        if turn % 2 == 1:
-            print("Black WINS!")
-        else:
-            print("White WINS!")
 
     pygame.quit()
 
